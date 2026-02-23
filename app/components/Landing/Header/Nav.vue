@@ -5,12 +5,8 @@ const items = ref<DropdownMenuItem[][]>([
   [
     {
       label: "CONFIGURATEUR PC",
-      children: [
-        [
-          { label: "Configurateur PC" }
-        ]
-      ]
-    }
+      children: [[{ label: "Configurateur PC" }]],
+    },
   ],
   [
     {
@@ -24,9 +20,9 @@ const items = ref<DropdownMenuItem[][]>([
                 { label: "PC Gamer Starter" },
                 { label: "PC Gamer Pro" },
                 { label: "PC Gamer Extreme" },
-                { label: "Ultra PC" }
-              ]
-            ]
+                { label: "Ultra PC" },
+              ],
+            ],
           },
           {
             label: "Powered By MSI",
@@ -34,9 +30,9 @@ const items = ref<DropdownMenuItem[][]>([
               [
                 { label: "Powered By MSI Essential" },
                 { label: "Powered By MSI Advanced" },
-                { label: "Powered By MSI Ultimate" }
-              ]
-            ]
+                { label: "Powered By MSI Ultimate" },
+              ],
+            ],
           },
           {
             label: "PC Gamer par Jeux",
@@ -50,9 +46,9 @@ const items = ref<DropdownMenuItem[][]>([
                 { label: "Fortnite" },
                 { label: "Call of Duty Warzone" },
                 { label: "Apex Legends" },
-                { label: "Red Dead" }
-              ]
-            ]
+                { label: "Red Dead" },
+              ],
+            ],
           },
           {
             label: "PC Professionnel par Logiciel",
@@ -66,9 +62,9 @@ const items = ref<DropdownMenuItem[][]>([
                 { label: "ArchiCAD" },
                 { label: "Adobe Photoshop" },
                 { label: "Adobe Illustrator" },
-                { label: "Rhino" }
-              ]
-            ]
+                { label: "Rhino" },
+              ],
+            ],
           },
           {
             label: "PC par Prix",
@@ -81,18 +77,13 @@ const items = ref<DropdownMenuItem[][]>([
                 { label: "7000 – 10000 DH" },
                 { label: "10000 – 15000 DH" },
                 { label: "15000 – 20000 DH" },
-                { label: "Plus de 20000 DH" }
-              ]
-            ]
+                { label: "Plus de 20000 DH" },
+              ],
+            ],
           },
           {
             label: "PC Professionnel",
-            children: [
-              [
-                { label: "PC Pro" },
-                { label: "PC Workstation" }
-              ]
-            ]
+            children: [[{ label: "PC Pro" }, { label: "PC Workstation" }]],
           },
           {
             label: "Setup Game",
@@ -100,13 +91,16 @@ const items = ref<DropdownMenuItem[][]>([
               [
                 { label: "Setup PC : PC + Écran" },
                 { label: "Setup PC Complet : PC + Souris + Clavier + Écran" },
-                { label: "Setup PC Complet : PC + Souris + Clavier + Écran + Chaise + Table" }
-              ]
-            ]
-          }
-        ]
-      ]
-    }
+                {
+                  label:
+                    "Setup PC Complet : PC + Souris + Clavier + Écran + Chaise + Table",
+                },
+              ],
+            ],
+          },
+        ],
+      ],
+    },
   ],
   [
     {
@@ -118,10 +112,10 @@ const items = ref<DropdownMenuItem[][]>([
           { label: "PC Portable Bureautique" },
           { label: "PC Portables Remis à Neuf" },
           { label: "Univers Apple – Mac" },
-          { label: "Sac & Sacoche & Cartable" }
-        ]
-      ]
-    }
+          { label: "Sac & Sacoche & Cartable" },
+        ],
+      ],
+    },
   ],
   [
     {
@@ -130,39 +124,19 @@ const items = ref<DropdownMenuItem[][]>([
         [
           {
             label: "Processeur",
-            children: [
-              [
-                { label: "AMD" },
-                { label: "Intel" }
-              ]
-            ]
+            children: [[{ label: "AMD" }, { label: "Intel" }]],
           },
           {
             label: "Carte Graphique",
-            children: [
-              [
-                { label: "NVIDIA" },
-                { label: "AMD" }
-              ]
-            ]
+            children: [[{ label: "NVIDIA" }, { label: "AMD" }]],
           },
           {
             label: "Carte Mère",
-            children: [
-              [
-                { label: "AMD" },
-                { label: "Intel" }
-              ]
-            ]
+            children: [[{ label: "AMD" }, { label: "Intel" }]],
           },
           {
             label: "Mémoire RAM",
-            children: [
-              [
-                { label: "DIMM" },
-                { label: "SO-DIMM" }
-              ]
-            ]
+            children: [[{ label: "DIMM" }, { label: "SO-DIMM" }]],
           },
           {
             label: "Boîtier Gamer",
@@ -171,9 +145,9 @@ const items = ref<DropdownMenuItem[][]>([
                 { label: "E-ATX" },
                 { label: "ATX" },
                 { label: "Micro-ATX" },
-                { label: "Mini-ITX" }
-              ]
-            ]
+                { label: "Mini-ITX" },
+              ],
+            ],
           },
           {
             label: "Stockage Externe",
@@ -182,9 +156,9 @@ const items = ref<DropdownMenuItem[][]>([
                 { label: "SSD Externe" },
                 { label: "HDD Externe" },
                 { label: "USB" },
-                { label: "Carte SD" }
-              ]
-            ]
+                { label: "Carte SD" },
+              ],
+            ],
           },
           {
             label: "Alimentation PC (PSU)",
@@ -192,27 +166,19 @@ const items = ref<DropdownMenuItem[][]>([
               [
                 { label: "80+ Bronze" },
                 { label: "80+ Gold" },
-                { label: "80+ Platinum" }
-              ]
-            ]
+                { label: "80+ Platinum" },
+              ],
+            ],
           },
           {
             label: "Stockage Interne",
-            children: [
-              [
-                { label: "HDD" },
-                { label: "SSD" }
-              ]
-            ]
+            children: [[{ label: "HDD" }, { label: "SSD" }]],
           },
           {
             label: "CPU Cooler",
             children: [
-              [
-                { label: "Kits Aircooling" },
-                { label: "Kits Watercooling" }
-              ]
-            ]
+              [{ label: "Kits Aircooling" }, { label: "Kits Watercooling" }],
+            ],
           },
           {
             label: "Accessoires PC",
@@ -220,14 +186,14 @@ const items = ref<DropdownMenuItem[][]>([
               [
                 { label: "Câble Extension" },
                 { label: "Pâte Thermique" },
-                { label: "Ventilateurs Boîtier" }
-              ]
-            ]
+                { label: "Ventilateurs Boîtier" },
+              ],
+            ],
           },
-          { label: "Serveur NAS" }
-        ]
-      ]
-    }
+          { label: "Serveur NAS" },
+        ],
+      ],
+    },
   ],
   [
     {
@@ -237,29 +203,20 @@ const items = ref<DropdownMenuItem[][]>([
           {
             label: "Clavier",
             children: [
-              [
-                { label: "Clavier Bureautique" },
-                { label: "Clavier Gamer" }
-              ]
-            ]
+              [{ label: "Clavier Bureautique" }, { label: "Clavier Gamer" }],
+            ],
           },
           {
             label: "Souris",
             children: [
-              [
-                { label: "Souris Bureautique" },
-                { label: "Souris Gamer" }
-              ]
-            ]
+              [{ label: "Souris Bureautique" }, { label: "Souris Gamer" }],
+            ],
           },
           {
             label: "Casque",
             children: [
-              [
-                { label: "Casque Bureautique" },
-                { label: "Casque Gamer" }
-              ]
-            ]
+              [{ label: "Casque Bureautique" }, { label: "Casque Gamer" }],
+            ],
           },
           {
             label: "Connectique",
@@ -269,9 +226,9 @@ const items = ref<DropdownMenuItem[][]>([
                 { label: "Hub & Boîtier Disque" },
                 { label: "Câble Réseau" },
                 { label: "Modem" },
-                { label: "Routeur & Point d'accès" }
-              ]
-            ]
+                { label: "Routeur & Point d'accès" },
+              ],
+            ],
           },
           { label: "Webcams" },
           { label: "Microphone" },
@@ -283,10 +240,10 @@ const items = ref<DropdownMenuItem[][]>([
           { label: "Tablette Graphique" },
           { label: "Volant & Shifter" },
           { label: "Tapis Souris" },
-          { label: "Manettes" }
-        ]
-      ]
-    }
+          { label: "Manettes" },
+        ],
+      ],
+    },
   ],
   [
     {
@@ -295,10 +252,10 @@ const items = ref<DropdownMenuItem[][]>([
         [
           { label: "Écran Gamer" },
           { label: "Écran Professionnel" },
-          { label: "Écran Interactif" }
-        ]
-      ]
-    }
+          { label: "Écran Interactif" },
+        ],
+      ],
+    },
   ],
   [
     {
@@ -313,9 +270,9 @@ const items = ref<DropdownMenuItem[][]>([
                 { label: "Microsoft – Xbox" },
                 { label: "Nintendo – Switch" },
                 { label: "Lenovo – Legion Go" },
-                { label: "Asus – ROG Ally" }
-              ]
-            ]
+                { label: "Asus – ROG Ally" },
+              ],
+            ],
           },
           {
             label: "Jeux Vidéo",
@@ -323,15 +280,15 @@ const items = ref<DropdownMenuItem[][]>([
               [
                 { label: "PlayStation" },
                 { label: "Xbox" },
-                { label: "Nintendo Switch" }
-              ]
-            ]
+                { label: "Nintendo Switch" },
+              ],
+            ],
           },
           { label: "Accessoires" },
-          { label: "VR Réalité Virtuelle" }
-        ]
-      ]
-    }
+          { label: "VR Réalité Virtuelle" },
+        ],
+      ],
+    },
   ],
   [
     {
@@ -340,21 +297,16 @@ const items = ref<DropdownMenuItem[][]>([
         [
           {
             label: "Chaises Bureau",
-            children: [
-              [
-                { label: "Chaises Ergo" },
-                { label: "Chaises Gamer" }
-              ]
-            ]
+            children: [[{ label: "Chaises Ergo" }, { label: "Chaises Gamer" }]],
           },
           { label: "Simulateurs de Course" },
           { label: "Tables Bureau" },
           { label: "Porte & Support Écran" },
           { label: "Décoration Lumineuse Nanoleaf" },
-          { label: "Figurine & Pop" }
-        ]
-      ]
-    }
+          { label: "Figurine & Pop" },
+        ],
+      ],
+    },
   ],
   [
     {
@@ -372,9 +324,9 @@ const items = ref<DropdownMenuItem[][]>([
                 { label: "Trépieds" },
                 { label: "Éclairages Continus" },
                 { label: "Softbox" },
-                { label: "Flash" }
-              ]
-            ]
+                { label: "Flash" },
+              ],
+            ],
           },
           { label: "Son" },
           {
@@ -382,9 +334,9 @@ const items = ref<DropdownMenuItem[][]>([
             children: [
               [
                 { label: "Stabilisateurs Caméras" },
-                { label: "Stabilisateurs Téléphones" }
-              ]
-            ]
+                { label: "Stabilisateurs Téléphones" },
+              ],
+            ],
           },
           {
             label: "Accessoires Photo",
@@ -396,13 +348,13 @@ const items = ref<DropdownMenuItem[][]>([
                 { label: "Batteries & Chargeurs Caméras" },
                 { label: "Bouchons & Pare-soleils" },
                 { label: "Sacs Caméras" },
-                { label: "Cages" }
-              ]
-            ]
-          }
-        ]
-      ]
-    }
+                { label: "Cages" },
+              ],
+            ],
+          },
+        ],
+      ],
+    },
   ],
   [
     {
@@ -412,10 +364,10 @@ const items = ref<DropdownMenuItem[][]>([
           { label: "Système d'exploitation" },
           { label: "Antivirus & Sécurité" },
           { label: "Bureautique" },
-          { label: "Carte de Recharge Jeux" }
-        ]
-      ]
-    }
+          { label: "Carte de Recharge Jeux" },
+        ],
+      ],
+    },
   ],
   [
     {
@@ -432,9 +384,9 @@ const items = ref<DropdownMenuItem[][]>([
                 { label: "Projecteurs" },
                 { label: "Écrans de Projection" },
                 { label: "Récepteur Numérique" },
-                { label: "Home Cinéma" }
-              ]
-            ]
+                { label: "Home Cinéma" },
+              ],
+            ],
           },
           {
             label: "Son",
@@ -442,13 +394,13 @@ const items = ref<DropdownMenuItem[][]>([
               [
                 { label: "Écouteurs" },
                 { label: "Casques" },
-                { label: "Enceintes / Haut-Parleurs" }
-              ]
-            ]
-          }
-        ]
-      ]
-    }
+                { label: "Enceintes / Haut-Parleurs" },
+              ],
+            ],
+          },
+        ],
+      ],
+    },
   ],
   [
     {
@@ -467,9 +419,9 @@ const items = ref<DropdownMenuItem[][]>([
                 { label: "Multifonction Laser Monochrome" },
                 { label: "Traceur" },
                 { label: "Imprimante Matricielle" },
-                { label: "Étiqueteuse & Imprimante Tickets" }
-              ]
-            ]
+                { label: "Étiqueteuse & Imprimante Tickets" },
+              ],
+            ],
           },
           {
             label: "Scanner",
@@ -477,9 +429,9 @@ const items = ref<DropdownMenuItem[][]>([
               [
                 { label: "Scanner à Plat sans Chargeur" },
                 { label: "Scanner à Défilement" },
-                { label: "Scanner à Plat avec Chargeur Automatique" }
-              ]
-            ]
+                { label: "Scanner à Plat avec Chargeur Automatique" },
+              ],
+            ],
           },
           {
             label: "Consommables",
@@ -489,13 +441,13 @@ const items = ref<DropdownMenuItem[][]>([
                 { label: "Toner" },
                 { label: "Ruban" },
                 { label: "Bouteille d'Encre" },
-                { label: "Tête d'Impression" }
-              ]
-            ]
-          }
-        ]
-      ]
-    }
+                { label: "Tête d'Impression" },
+              ],
+            ],
+          },
+        ],
+      ],
+    },
   ],
   [
     {
@@ -507,17 +459,18 @@ const items = ref<DropdownMenuItem[][]>([
           { label: "Powerbank" },
           { label: "Chargeur" },
           { label: "Câble" },
-          { label: "Caméra de Surveillance" }
-        ]
-      ]
-    }
-  ]
+          { label: "Caméra de Surveillance" },
+        ],
+      ],
+    },
+  ],
 ]);
 </script>
 
 <template>
   <UDropdownMenu :items="items" :content="{ align: 'start' }">
     <UButton
+      size="sm"
       icon="i-lucide-menu"
       color="secondary"
       label="Tous nos produits"
