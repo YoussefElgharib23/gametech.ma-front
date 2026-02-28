@@ -8,5 +8,8 @@
 
     <!-- Flash sales -->
     <LandingFlashSales />
+
+    <!-- Products carousel -->
+    <LandingProducts />
   </div>
 </template>
