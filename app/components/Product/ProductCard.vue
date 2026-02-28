@@ -1,93 +1,134 @@
 <script setup lang="ts">
 interface Props {
-  discount?: string;
+  to?: string;
   image?: string;
-  specs?: string;
+  brandImage?: string;
+  brandName?: string;
   stockStatus?: string;
   title: string;
   currentPrice: string;
   oldPrice?: string;
-  promotionInfo?: string;
-  soldPercentage?: string;
 }
 
-withDefaults(defineProps<Props>(), {
-  discount: "",
+const props = withDefaults(defineProps<Props>(), {
+  to: "#",
   image: "",
-  specs: "",
+  brandImage: "",
+  brandName: "",
   stockStatus: "EN STOCK",
   oldPrice: "",
-  promotionInfo: "",
-  soldPercentage: "",
 });
+
+function parsePrice(priceStr: string): number {
+  const digits = priceStr.replace(/\D/g, "");
+  return digits ? Number(digits) : 0;
+}
+
+function formatMad(amount: number): string {
+  const s = amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
+  return `${s} MAD`;
+}
+
+const savingsText = computed(() => {
+  if (!props.oldPrice) return null;
+  const oldVal = parsePrice(props.oldPrice);
+  const currentVal = parsePrice(props.currentPrice);
+  const save = oldVal - currentVal;
+  if (save <= 0) return null;
+  return `Économisez ${formatMad(save)}`;
+});
+
+const emit = defineEmits<{ "add-to-cart": [] }>();
+
+function onAddToCart(e: MouseEvent) {
+  e.preventDefault();
+  e.stopPropagation();
+  emit("add-to-cart");
+}
 </script>
 
 <template>
-  <div
-    class="flex flex-col bg-white border border-neutral-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow"
+  <NuxtLink
+    :to="to"
+    class="group flex flex-col rounded-xl border border-neutral-200 bg-white overflow-hidden transition-all duration-200 hover:shadow-lg hover:border-neutral-300 hover:-translate-y-0.5 cursor-pointer"
   >
-    <!-- Discount Badge -->
-    <div
-      v-if="discount"
-      class="bg-secondary-500 text-brand-dark-950 text-xs font-semibold px-2 py-1 text-center uppercase"
-    >
-      {{ discount }}
-    </div>
-
-    <!-- Product Image -->
-    <div
-      class="p-4 flex items-center justify-center bg-neutral-50 min-h-[200px]"
-    >
-      <NuxtImg
-        v-if="image"
-        :src="image"
-        :alt="title"
-        class="w-full h-auto object-contain max-h-[180px]"
-        loading="lazy"
-      />
-      <UIcon v-else name="i-lucide-image" class="text-neutral-400 text-4xl" />
-    </div>
-
-    <!-- Specs -->
-    <div
-      v-if="specs"
-      class="px-4 text-xs text-neutral-600 uppercase text-center"
-    >
-      {{ specs }}
-    </div>
-
-    <!-- Stock Badge -->
-    <div class="px-4 py-2">
-      <span
-        class="inline-block bg-green-100 text-green-800 text-xs font-medium px-2 py-1 rounded uppercase"
+    <!-- Image block with overlaid badge -->
+    <div class="relative p-3 pb-0">
+      <div
+        class="relative rounded-lg bg-white min-h-[200px] flex items-center justify-center overflow-hidden p-3"
       >
-        {{ stockStatus }}
-      </span>
+        <NuxtImg
+          v-if="image"
+          :src="image"
+          :alt="title"
+          class="w-full h-auto object-contain max-h-[180px] transition-transform duration-300 group-hover:scale-105"
+          loading="lazy"
+        />
+        <UIcon v-else name="i-lucide-image" class="text-neutral-400 text-4xl" />
+
+        <!-- Stock: bottom-left pill on image -->
+        <span
+          class="absolute bottom-2 left-2 rounded-full bg-brand-accent-500 text-brand-accent-950 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide shadow-sm"
+        >
+          {{ stockStatus }}
+        </span>
+      </div>
     </div>
 
-    <!-- Product Title -->
-    <div class="px-4 pb-2">
-      <h3 class="text-sm font-medium text-brand-dark-950 line-clamp-2">
+    <!-- Content -->
+    <div class="flex flex-1 flex-col p-4 pt-3">
+      <!-- Brand: logo + name -->
+      <div v-if="brandImage || brandName" class="flex items-center gap-2 mb-2">
+        <NuxtImg
+          v-if="brandImage"
+          :src="brandImage"
+          :alt="brandName || 'Brand'"
+          class="size-6 object-contain shrink-0"
+          loading="lazy"
+        />
+        <span
+          v-if="brandName"
+          class="text-xs font-medium text-neutral-500 truncate"
+        >
+          {{ brandName }}
+        </span>
+      </div>
+
+      <h3
+        class="text-sm font-semibold text-neutral-900 line-clamp-2 mb-3 h-[40px]"
+      >
         {{ title }}
       </h3>
-    </div>
 
-    <!-- Prices -->
-    <div class="px-4 pb-2 flex flex-col gap-1">
-      <div class="flex flex-col items-start">
-        <span class="text-lg font-bold text-brand-dark-950">
-          {{ currentPrice }}
-        </span>
-        <span v-if="oldPrice" class="text-sm text-neutral-500 line-through">
-          {{ oldPrice }}
-        </span>
-      </div>
-      <div
-        v-if="promotionInfo || soldPercentage"
-        class="text-xs text-secondary-600 font-medium"
-      >
-        {{ promotionInfo || `${soldPercentage} Vendu` }}
+      <!-- Price row: current + old inline -->
+      <div class="mt-auto flex flex-col gap-1">
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-lg font-bold tabular-nums text-primary-700">
+            {{ currentPrice }}
+          </span>
+          <span
+            v-if="oldPrice"
+            class="text-sm tabular-nums text-neutral-400 line-through"
+          >
+            {{ oldPrice }}
+          </span>
+        </div>
+        <div
+          v-if="oldPrice"
+          class="flex flex-wrap items-center gap-1.5 text-xs text-secondary-600 font-medium"
+        >
+          <span>En Promo</span>
+          <span v-if="savingsText">• {{ savingsText }}</span>
+        </div>
+        <UButton
+          class="mt-3 w-full h-10 text-sm"
+          label="Ajouter au panier"
+          icon="i-lucide-shopping-cart"
+          color="neutral"
+          block
+          @click="onAddToCart"
+        />
       </div>
     </div>
-  </div>
+  </NuxtLink>
 </template>

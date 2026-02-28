@@ -128,11 +128,9 @@ const flashProducts = ref([
   <UContainer class="py-8">
     <!-- Header Section -->
     <div
-      class="bg-secondary-500 rounded-t-lg px-6 py-4 flex items-center justify-between"
+      class="bg-brand-dark-900 rounded-t-lg px-6 py-4 flex items-center justify-between"
     >
-      <h2 class="text-xl font-semibold text-brand-dark-950 uppercase">
-        VENTE FLASH
-      </h2>
+      <h2 class="text-xl font-extrabold text-white uppercase">VENTE FLASH</h2>
       <CountdownTimer :days="2" :hours="5" :minutes="12" :seconds="49" />
     </div>
 
@@ -143,29 +141,22 @@ const flashProducts = ref([
         <ProductCard
           v-for="product in flashProducts.slice(0, 6)"
           :key="product.id"
-          :discount="product.discount"
           :image="product.image"
-          :specs="product.specs"
           :stock-status="product.stockStatus"
           :title="product.title"
           :current-price="product.currentPrice"
           :old-price="product.oldPrice"
-          :promotion-info="product.promotionInfo"
-          :sold-percentage="product.soldPercentage"
         />
 
         <!-- Second Row - 5 products + 1 "Voir plus" card -->
         <ProductCard
           v-for="product in flashProducts.slice(6, 9)"
           :key="product.id"
-          :discount="product.discount"
           :image="product.image"
-          :specs="product.specs"
           :stock-status="product.stockStatus"
           :title="product.title"
           :current-price="product.currentPrice"
           :old-price="product.oldPrice"
-          :promotion-info="product.promotionInfo"
         />
         <ProductCardMore />
       </div>

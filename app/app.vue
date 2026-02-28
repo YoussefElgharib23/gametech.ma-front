@@ -26,13 +26,13 @@ useSeoMeta({
   <UApp>
     <div class="bg-brand-accent-500 border-b border-brand-dark-100">
       <UContainer class="py-2">
-        <p class="text-brand-dark-500 text-xs">
+        <p class="text-brand-dark-500 text-xs text-center">
           Built with Nuxt UI • © {{ new Date().getFullYear() }}
         </p>
       </UContainer>
     </div>
 
-    <UHeader>
+    <UHeader class="static">
       <template #left>
         <NuxtLink to="/">
           <AppLogo class="w-auto h-6 shrink-0" />
@@ -65,7 +65,7 @@ useSeoMeta({
       </template>
     </UHeader>
 
-    <div class="bg-brand-dark-900">
+    <div class="bg-neutral-950 sticky top-0 z-50">
       <UContainer>
         <LandingHeaderNav />
       </UContainer>
@@ -75,6 +75,6 @@ useSeoMeta({
       <NuxtPage />
     </UMain>
 
-    <UFooter> </UFooter>
+    <AppFooter />
   </UApp>
 </template>
