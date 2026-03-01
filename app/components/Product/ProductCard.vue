@@ -10,32 +10,13 @@ interface Props {
   oldPrice?: string;
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   to: "#",
   image: "",
   brandImage: "",
   brandName: "",
   stockStatus: "EN STOCK",
   oldPrice: "",
-});
-
-function parsePrice(priceStr: string): number {
-  const digits = priceStr.replace(/\D/g, "");
-  return digits ? Number(digits) : 0;
-}
-
-function formatMad(amount: number): string {
-  const s = amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ");
-  return `${s} MAD`;
-}
-
-const savingsText = computed(() => {
-  if (!props.oldPrice) return null;
-  const oldVal = parsePrice(props.oldPrice);
-  const currentVal = parsePrice(props.currentPrice);
-  const save = oldVal - currentVal;
-  if (save <= 0) return null;
-  return `Économisez ${formatMad(save)}`;
 });
 
 const emit = defineEmits<{ "add-to-cart": [] }>();
@@ -65,6 +46,14 @@ function onAddToCart(e: MouseEvent) {
           loading="lazy"
         />
         <UIcon v-else name="i-lucide-image" class="text-neutral-400 text-4xl" />
+
+        <!-- Promo: absolute top-right on image (same layout for all cards) -->
+        <div
+          v-if="oldPrice"
+          class="absolute top-2 right-2 rounded-md bg-secondary-500/95 px-2 py-1.5 text-[11px] font-semibold text-brand-dark-950 shadow-sm"
+        >
+          <span>En Promo</span>
+        </div>
 
         <!-- Stock: bottom-left pill on image -->
         <span
@@ -100,25 +89,20 @@ function onAddToCart(e: MouseEvent) {
         {{ title }}
       </h3>
 
-      <!-- Price row: current + old inline -->
       <div class="mt-auto flex flex-col gap-1">
-        <div class="flex flex-wrap items-center gap-2">
-          <span class="text-lg font-bold tabular-nums text-primary-700">
-            {{ currentPrice }}
-          </span>
+        <div class="flex flex-col -space-y-1">
           <span
             v-if="oldPrice"
             class="text-sm tabular-nums text-neutral-400 line-through"
           >
             {{ oldPrice }}
           </span>
-        </div>
-        <div
-          v-if="oldPrice"
-          class="flex flex-wrap items-center gap-1.5 text-xs text-secondary-600 font-medium"
-        >
-          <span>En Promo</span>
-          <span v-if="savingsText">• {{ savingsText }}</span>
+          <span
+            class="text-lg font-bold tabular-nums text-primary-700"
+            :class="{ 'mt-[18px]': !oldPrice }"
+          >
+            {{ currentPrice }}
+          </span>
         </div>
         <UButton
           class="mt-3 w-full h-10 text-sm"

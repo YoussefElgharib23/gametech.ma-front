@@ -10,7 +10,7 @@ const tabs = [
 ];
 
 const productImage =
-  "https://pcgameragadir.ma/storage/uploads/products/68cee28d7b94c/ryzen-9-5950x_large.webp";
+  "https://pcgameragadir.ma/storage/uploads/products/TlF3g1GFIpyjcKALFS0rQz13SnqAaCVMfRJXTxjs_small.jpg";
 
 const selectionsProducts = ref([
   {
@@ -409,13 +409,15 @@ const scrollNext = () => {
           viewport: 'overflow-hidden',
         }"
       >
-        <ProductCard
-          :image="item.image"
-          :stock-status="item.stockStatus"
-          :title="item.title"
-          :current-price="item.currentPrice"
-          :old-price="item.oldPrice"
-        />
+        <div class="py-2">
+          <ProductCard
+            :image="item.image"
+            :stock-status="item.stockStatus"
+            :title="item.title"
+            :current-price="item.currentPrice"
+            :old-price="item.oldPrice"
+          />
+        </div>
       </UCarousel>
     </div>
   </UContainer>

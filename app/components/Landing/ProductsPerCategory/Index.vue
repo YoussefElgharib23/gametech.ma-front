@@ -113,28 +113,31 @@ const scrollNext = () => categoryCarousel.value?.emblaApi?.scrollNext();
           :slides-to-scroll="1"
           :autoplay="{ delay: 4000 }"
           :ui="{
-            item: 'basis-1/2 sm:basis-1/3 md:basis-1/4 lg:basis-1/5 shrink-0',
-            container: 'gap-3',
+            item: 'sm:basis-1/2 md:basis-1/3 lg:basis-1/4 shrink-0',
+            container: 'gap-1',
             viewport: 'overflow-hidden',
           }"
         >
-          <ProductCard
-            :image="item.image"
-            :stock-status="item.stockStatus"
-            :title="item.title"
-            :current-price="item.currentPrice"
-            :old-price="item.oldPrice"
-          />
+          <div class="py-2">
+            <ProductCard
+              :image="item.image"
+              :stock-status="item.stockStatus"
+              :title="item.title"
+              :current-price="item.currentPrice"
+              :old-price="item.oldPrice"
+            />
+          </div>
         </UCarousel>
       </div>
     </div>
     <div class="mt-6 flex justify-center">
       <UButton
         to="/products"
-        label="Browse all products"
-        trailing-icon="i-lucide-arrow-right"
+        label="Voir tous les produits"
+        trailing-icon="i-lucide-arrow-up-right"
         color="primary"
         size="lg"
+        variant="outline"
       />
     </div>
   </UContainer>

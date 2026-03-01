@@ -126,16 +126,27 @@ const flashProducts = ref([
 
 <template>
   <UContainer class="py-8">
-    <!-- Header Section -->
-    <div
-      class="bg-brand-dark-900 rounded-t-lg px-6 py-4 flex items-center justify-between"
-    >
-      <h2 class="text-xl font-extrabold text-white uppercase">VENTE FLASH</h2>
-      <CountdownTimer :days="2" :hours="5" :minutes="12" :seconds="49" />
-    </div>
+    <div class="bg-neutral-300/20 rounded-lg p-6">
+      <div
+        class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6 lg:mb-8"
+      >
+        <h2
+          class="text-3xl sm:text-4xl tracking-tighter font-extrabold order-2 lg:order-1"
+        >
+          🏆 Vente Flash
+        </h2>
+        <div
+          class="order-1 lg:order-2 flex flex-col items-center lg:items-end gap-1"
+        >
+          <span
+            class="text-xs font-medium text-neutral-600 uppercase tracking-wider"
+            >Se termine dans</span
+          >
+          <CountdownTimer :days="2" :hours="5" :minutes="12" :seconds="49" />
+        </div>
+      </div>
 
-    <!-- Products Grid -->
-    <div class="bg-white border-x border-b border-neutral-200 rounded-b-lg p-6">
+      <!-- Products Grid -->
       <div class="grid grid-cols-5 gap-4">
         <!-- First Row - 6 products -->
         <ProductCard
