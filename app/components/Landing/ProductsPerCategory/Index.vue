@@ -95,7 +95,12 @@ const scrollNext = () => categoryCarousel.value?.emblaApi?.scrollNext();
           @click="activeCategory = cat.value"
         >
           <span
-            class="flex shrink-0 items-center justify-center overflow-hidden transition-[width,opacity] duration-200 w-0 opacity-0 group-hover:w-4 group-hover:opacity-100"
+            :class="[
+              'flex shrink-0 items-center justify-center overflow-hidden transition-[width,opacity] duration-200',
+              activeCategory === cat.value
+                ? 'w-4 opacity-100'
+                : 'w-0 opacity-0 group-hover:w-4 group-hover:opacity-100',
+            ]"
           >
             <UIcon name="i-lucide-chevron-right" class="size-4 shrink-0" />
           </span>

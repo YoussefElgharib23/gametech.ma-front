@@ -2,7 +2,7 @@
 export default defineNuxtConfig({
   modules: [
     '@nuxt/eslint',
-    '@nuxt/fonts',
+    // '@nuxt/fonts',
     '@nuxt/ui',
     '@nuxt/image',
     '@nuxtjs/device',
@@ -16,6 +16,12 @@ export default defineNuxtConfig({
 
   devtools: {
     enabled: true
+  },
+
+  fonts: {
+    families: [
+      { name: 'Space Grotesk', provider: 'google' }
+    ]
   },
 
   css: ['~/assets/css/main.css'],

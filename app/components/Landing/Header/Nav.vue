@@ -468,14 +468,236 @@ const items = ref<DropdownMenuItem[][]>([
 </script>
 
 <template>
-  <UDropdownMenu :items="items" :content="{ align: 'start' }">
+  <UPopover
+    :content="{
+      align: 'start',
+      side: 'bottom',
+      sideOffset: 8,
+    }"
+    :ui="{ content: 'w-[960px] max-w-[90vw] p-4' }"
+    arrow
+  >
     <UButton
-      size="sm"
       icon="i-lucide-menu"
       color="secondary"
       label="Tous nos produits"
       variant="solid"
-      class="rounded-none py-3 font-semibold uppercase"
+      class="rounded-none py-3 font-semibold uppercase cursor-pointer"
     />
-  </UDropdownMenu>
+
+    <template #content>
+      <div class="grid grid-cols-3 gap-6">
+        <!-- Column 1: PC & Ordinateur -->
+        <div class="space-y-3">
+          <p class="text-xs font-semibold uppercase text-neutral-500">
+            {{ items[1]?.[0]?.label }}
+          </p>
+          <ul class="space-y-1.5 text-sm">
+            <li>
+              <NuxtLink to="#" class="hover:text-primary-700"
+                >PC Gamer</NuxtLink
+              >
+            </li>
+            <li>
+              <NuxtLink to="#" class="hover:text-primary-700">
+                PC Professionnel
+              </NuxtLink>
+            </li>
+            <li>
+              <NuxtLink to="#" class="hover:text-primary-700">
+                PC par jeu
+              </NuxtLink>
+            </li>
+            <li>
+              <NuxtLink to="#" class="hover:text-primary-700">
+                PC par budget
+              </NuxtLink>
+            </li>
+          </ul>
+
+          <p class="text-xs font-semibold uppercase text-neutral-500 mt-4">
+            {{ items[2]?.[0]?.label }}
+          </p>
+          <ul class="space-y-1.5 text-sm">
+            <li>
+              <NuxtLink to="#" class="hover:text-primary-700">
+                PC Portables Gamer
+              </NuxtLink>
+            </li>
+            <li>
+              <NuxtLink to="#" class="hover:text-primary-700">
+                PC Portables Professionnels
+              </NuxtLink>
+            </li>
+            <li>
+              <NuxtLink to="#" class="hover:text-primary-700">
+                Mac & Univers Apple
+              </NuxtLink>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Column 2: Composants & Périphériques -->
+        <div class="space-y-3">
+          <p class="text-xs font-semibold uppercase text-neutral-500">
+            {{ items[3]?.[0]?.label }}
+          </p>
+          <ul class="space-y-1.5 text-sm">
+            <li>
+              <NuxtLink to="#" class="hover:text-primary-700">
+                Processeurs
+              </NuxtLink>
+            </li>
+            <li>
+              <NuxtLink to="#" class="hover:text-primary-700">
+                Cartes graphiques
+              </NuxtLink>
+            </li>
+            <li>
+              <NuxtLink to="#" class="hover:text-primary-700">
+                Cartes mères
+              </NuxtLink>
+            </li>
+            <li>
+              <NuxtLink to="#" class="hover:text-primary-700">
+                Mémoire RAM
+              </NuxtLink>
+            </li>
+            <li>
+              <NuxtLink to="#" class="hover:text-primary-700"
+                >Stockage</NuxtLink
+              >
+            </li>
+          </ul>
+
+          <p class="text-xs font-semibold uppercase text-neutral-500 mt-4">
+            {{ items[4]?.[0]?.label }}
+          </p>
+          <ul class="space-y-1.5 text-sm">
+            <li>
+              <NuxtLink to="#" class="hover:text-primary-700">
+                Claviers & Souris
+              </NuxtLink>
+            </li>
+            <li>
+              <NuxtLink to="#" class="hover:text-primary-700">
+                Casques & Audio
+              </NuxtLink>
+            </li>
+            <li>
+              <NuxtLink to="#" class="hover:text-primary-700">
+                Webcams & Micro
+              </NuxtLink>
+            </li>
+            <li>
+              <NuxtLink to="#" class="hover:text-primary-700">
+                Tapis & Accessoires
+              </NuxtLink>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Column 3: Composants & Périphériques -->
+        <div class="space-y-3">
+          <p class="text-xs font-semibold uppercase text-neutral-500">
+            {{ items[3]?.[0]?.label }}
+          </p>
+          <ul class="space-y-1.5 text-sm">
+            <li>
+              <NuxtLink to="#" class="hover:text-primary-700">
+                Processeurs
+              </NuxtLink>
+            </li>
+            <li>
+              <NuxtLink to="#" class="hover:text-primary-700">
+                Cartes graphiques
+              </NuxtLink>
+            </li>
+            <li>
+              <NuxtLink to="#" class="hover:text-primary-700">
+                Cartes mères
+              </NuxtLink>
+            </li>
+            <li>
+              <NuxtLink to="#" class="hover:text-primary-700">
+                Mémoire RAM
+              </NuxtLink>
+            </li>
+            <li>
+              <NuxtLink to="#" class="hover:text-primary-700"
+                >Stockage</NuxtLink
+              >
+            </li>
+          </ul>
+
+          <p class="text-xs font-semibold uppercase text-neutral-500 mt-4">
+            {{ items[4]?.[0]?.label }}
+          </p>
+          <ul class="space-y-1.5 text-sm">
+            <li>
+              <NuxtLink to="#" class="hover:text-primary-700">
+                Claviers & Souris
+              </NuxtLink>
+            </li>
+            <li>
+              <NuxtLink to="#" class="hover:text-primary-700">
+                Casques & Audio
+              </NuxtLink>
+            </li>
+            <li>
+              <NuxtLink to="#" class="hover:text-primary-700">
+                Webcams & Micro
+              </NuxtLink>
+            </li>
+            <li>
+              <NuxtLink to="#" class="hover:text-primary-700">
+                Tapis & Accessoires
+              </NuxtLink>
+            </li>
+          </ul>
+        </div>
+
+        <!-- Column 3: Feature card + links -->
+        <div
+          class="col-span-3 rounded-xl bg-neutral-100/80 border border-neutral-200 p-4 flex flex-col justify-between gap-3"
+        >
+          <div>
+            <p class="text-xs font-semibold uppercase text-neutral-500 mb-1">
+              En avant
+            </p>
+            <p class="text-sm font-semibold mb-1">AMD Ryzen 9 5950X</p>
+            <p class="text-xs text-neutral-600 mb-3">
+              16 cœurs, 32 threads, idéal pour le gaming intensif et la création
+              de contenu.
+            </p>
+          </div>
+
+          <div class="flex items-center justify-between gap-3">
+            <p class="text-lg font-bold text-primary-700">4 999 MAD</p>
+            <UButton
+              size="xs"
+              color="primary"
+              variant="solid"
+              label="Voir la fiche produit"
+              to="/products/amd-ryzen-9-5950x"
+            />
+          </div>
+
+          <div
+            class="mt-3 pt-3 border-t border-neutral-200 flex justify-between items-center"
+          >
+            <span class="text-[11px] text-neutral-500">
+              Explorez tout notre catalogue par catégorie.
+            </span>
+            <NuxtLink
+              to="/products"
+              class="text-[11px] font-semibold text-primary-700 hover:underline"
+            >
+              Voir tous les produits →
+            </NuxtLink>
+          </div>
+        </div>
+      </div>
+    </template>
+  </UPopover>
 </template>

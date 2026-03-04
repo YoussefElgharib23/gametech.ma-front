@@ -133,7 +133,7 @@ const flashProducts = ref([
         <h2
           class="text-3xl sm:text-4xl tracking-tighter font-extrabold order-2 lg:order-1"
         >
-          🏆 Vente Flash
+          Vente Flash
         </h2>
         <div
           class="order-1 lg:order-2 flex flex-col items-center lg:items-end gap-1"

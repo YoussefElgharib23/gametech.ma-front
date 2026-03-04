@@ -345,16 +345,16 @@ const scrollNext = () => {
       />
       <div class="max-w-2xl mx-auto">
         <UTabs
-          v-model="activeTab"
-          :items="tabs"
-          color="secondary"
           variant="pill"
-          :content="false"
           class="w-full"
+          size="xl"
+          :content="false"
+          :items="tabs"
+          v-model="activeTab"
           :ui="{
             root: 'flex items-center justify-center gap-1',
             list: 'flex items-center gap-2',
-            trigger: 'uppercase font-semibold',
+            trigger: 'uppercase font-semibold text-sm',
           }"
         />
       </div>

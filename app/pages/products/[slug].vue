@@ -22,6 +22,7 @@ interface Product {
   brand?: ProductBrand;
   currentPrice: string;
   oldPrice?: string;
+  savingsLabel?: string;
   stockStatus: string;
   category: ProductCategory;
 }
@@ -49,6 +50,7 @@ const product = ref<Product>({
   },
   currentPrice: "4 999 MAD",
   oldPrice: "5 499 MAD",
+  savingsLabel: "Économisez 500 MAD",
   stockStatus: "EN STOCK",
   category: { name: "Processeurs", slug: "processeurs" },
 });
@@ -239,10 +241,19 @@ function onAddToCart() {
     <!-- Product layout: gallery + info -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10 mb-12">
       <!-- Gallery -->
-      <div class="space-y-3">
+      <div class="space-y-3 sticky top-12 self-start">
         <div
-          class="relative aspect-square rounded-xl bg-neutral-100 border border-neutral-200 overflow-hidden"
+          class="relative aspect-square rounded-xl border border-muted overflow-hidden"
         >
+          <div
+            v-if="product.oldPrice && product.savingsLabel"
+            class="absolute left-3 top-3 z-10 rounded-md bg-secondary-500/95 px-3 py-1.5 text-xs font-semibold text-secondary-950 shadow-sm flex flex-col items-start gap-0.5"
+          >
+            <span>En Promo</span>
+            <span class="text-[11px] leading-tight">
+              {{ product.savingsLabel }}
+            </span>
+          </div>
           <UCarousel
             v-if="product.images?.length"
             ref="carousel"
@@ -286,7 +297,7 @@ function onAddToCart() {
             <UIcon name="i-lucide-image" class="text-neutral-400 text-6xl" />
           </div>
         </div>
-        <div class="flex gap-3 pt-4 max-w-xs mx-auto mb-4">
+        <div class="flex gap-3 pt-4">
           <div
             v-for="(item, index) in product.images"
             :key="index"
@@ -332,12 +343,6 @@ function onAddToCart() {
             {{ product.stockStatus }}
           </span>
           <span class="text-sm text-neutral-500">Réf. {{ product.sku }}</span>
-          <div
-            v-if="product.oldPrice"
-            class="rounded-md bg-secondary-500/95 px-2 py-1 text-xs font-semibold text-secondary-950"
-          >
-            En Promo
-          </div>
         </div>
 
         <div class="flex flex-col gap-1 mb-6">
@@ -355,40 +360,412 @@ function onAddToCart() {
         </div>
 
         <UButton
-          size="lg"
           label="Ajouter au panier"
           icon="i-lucide-shopping-cart"
-          class="w-full sm:w-auto min-w-48"
+          class="h-10 w-full text-center justify-center"
           @click="onAddToCart"
         />
+
+        <div class="prose prose-sm mt-4 w-full max-w-none prose-p:w-full">
+          <p>
+            Plongez dans une expérience <em>ultime</em> où performance rime avec
+            élégance : le <strong>MSI Vector 16 HX A14VGG</strong> vous propulse
+            au cœur du jeu et de la création sans concessions. Sous un design
+            raffiné couleur <em>Cosmo Gray</em>, sa puissance délivre un rendu
+            fluide et réactif, que ce soit pour jouer, monter des vidéos 4K ou
+            modéliser en 3D. Le
+            <strong>processeur Intel i9‑14900HX</strong> allié à 32 Go de RAM
+            DDR5 assure une exécution sans latence, tandis que la
+            <strong>RTX 4070 8 Go</strong> offre un rendu graphique immersif,
+            ray tracing et DLSS compris.
+          </p>
+          <p>
+            Côté confort et immersion, vous profitez d’un écran
+            <strong>16″ QHD+ (2560×1600) 240 Hz</strong> aux angles larges
+            (IPS-level) qui restitue les moindres détails avec fluidité.
+            L’intégration d’un système audio calibré pour le gaming
+            (haut-parleurs stéréo, technologie audio avancée) assure un rendu
+            sonore dynamique, idéal pour entendre chaque pas, explosion ou
+            musique d’ambiance. Le châssis, bien ventilé grâce au système
+            <strong>Cooler Boost 5</strong> (double ventilateur et plusieurs
+            caloducs), maintient une bonne dissipation thermique pour un usage
+            <em>prolongé</em> sans surchauffe excessive.
+          </p>
+          <p>
+            Avec son clavier <strong>SteelSeries per‑key RGB</strong>, chaque
+            touche s’éclaire et réagit selon vos préférences, rendant
+            l’interface visuelle aussi part intégrante de votre univers. Le tout
+            dans un format fin (22,20 à 28,55 mm d’épaisseur), suffisamment
+            léger pour une machine gamer (≈ 2,7 kg), offrant un bon compromis
+            pour transport et puissance. Le MSI Vector 16 HX A14VGG est le
+            compagnon idéal pour les créateurs et gamers exigeants, alliant
+            <strong>performance extrême</strong>,
+            <strong>audio immersif</strong> et
+            <strong>confort longue durée</strong>.
+          </p>
+          <hr />
+          <h3>Caractéristiques techniques</h3>
+          <ul>
+            <li>
+              <p>
+                <strong>Modèle produit</strong> : MSI Vector 16 HX A14VGG
+                (référence 426MA)
+                <a
+                  target="_blank"
+                  rel="noopener"
+                  class="text-blue-500 underline flex h-4.5 overflow-hidden rounded-xl px-2 text-[9px] font-medium transition-colors duration-150 ease-in-out text-token-text-secondary! bg-[#F4F4F4]! dark:bg-[#303030]!"
+                  href="https://www.ultrapc.ma/pc-portables-gamer/9289-msi-vector-16-hx-a14vgg-426ma-intel-i9-14900hx-32gb-ddr5-1tb-ssd-rtx-4070-8gb-16-240hz-win11.html?srsltid=AfmBOopIrHpiuAoYg9PyEdpjqPj8IXhAurQZzk4nsaGxTT8VH1Q_Td4u&amp;utm_source=chatgpt.com"
+                  >UltraPC</a
+                >
+              </p>
+            </li>
+            <li>
+              <p>
+                <strong>Processeur (CPU)</strong> : Intel Core i9‑14900HX
+                (jusqu’à 5,8 GHz, 24 cœurs [8P + 16E])
+                <a
+                  target="_blank"
+                  rel="noopener"
+                  class="text-blue-500 underline flex h-4.5 overflow-hidden rounded-xl px-2 text-[9px] font-medium transition-colors duration-150 ease-in-out text-token-text-secondary! bg-[#F4F4F4]! dark:bg-[#303030]!"
+                  href="https://fr.msi.com/Laptop/Vector-16-HX-A14VX/Specification/?utm_source=chatgpt.com"
+                  >MSI+2UltraPC+2</a
+                >
+              </p>
+            </li>
+            <li>
+              <p>
+                <strong>Carte graphique (GPU)</strong> : NVIDIA GeForce RTX 4070
+                8 Go GDDR6 (jusqu’à 2175 MHz boost)
+                <a
+                  target="_blank"
+                  rel="noopener"
+                  class="text-blue-500 underline flex h-4.5 overflow-hidden rounded-xl px-2 text-[9px] font-medium transition-colors duration-150 ease-in-out text-token-text-secondary! bg-[#F4F4F4]! dark:bg-[#303030]!"
+                  href="https://www.msi.com/Laptop/Vector-16-HX-A14VX/Specification?utm_source=chatgpt.com"
+                  >UltraPC+3MSI+3MSI Store+3</a
+                >
+              </p>
+            </li>
+            <li>
+              <p>
+                <strong>Mémoire vive (RAM)</strong> : 32 Go DDR5 (2 × 16 Go) –
+                extensible jusqu’à 96 Go
+                <a
+                  target="_blank"
+                  rel="noopener"
+                  class="text-blue-500 underline flex h-4.5 overflow-hidden rounded-xl px-2 text-[9px] font-medium transition-colors duration-150 ease-in-out text-token-text-secondary! bg-[#F4F4F4]! dark:bg-[#303030]!"
+                  href="https://www.msi.com/Laptop/Vector-16-HX-A14VX/Specification?utm_source=chatgpt.com"
+                  >MSI+2UltraPC+2</a
+                >
+              </p>
+            </li>
+            <li>
+              <p>
+                <strong>Stockage</strong> : SSD 1 To NVMe PCIe Gen4
+                <a
+                  target="_blank"
+                  rel="noopener"
+                  class="text-blue-500 underline flex h-4.5 overflow-hidden rounded-xl px-2 text-[9px] font-medium transition-colors duration-150 ease-in-out text-token-text-secondary! bg-[#F4F4F4]! dark:bg-[#303030]!"
+                  href="https://us-store.msi.com/Laptops/Gaming-Series/Vector-GP-Series/Vector-16-HX-A14VGG-254US?utm_source=chatgpt.com"
+                  >MSI+3MSI Store+3UltraPC+3</a
+                >
+              </p>
+            </li>
+            <li>
+              <p>
+                <strong>Écran</strong> : 16″ QHD+ (2560×1600),
+                <strong>240 Hz</strong>, IPS‑level, 100 % DCI‑P3 typique
+                <a
+                  target="_blank"
+                  rel="noopener"
+                  class="text-blue-500 underline flex h-4.5 overflow-hidden rounded-xl px-2 text-[9px] font-medium transition-colors duration-150 ease-in-out text-token-text-secondary! bg-[#F4F4F4]! dark:bg-[#303030]!"
+                  href="https://fr.msi.com/Laptop/Vector-16-HX-A14VX/Specification/?utm_source=chatgpt.com"
+                  >MSI+3MSI+3MSI+3</a
+                >
+              </p>
+            </li>
+            <li>
+              <p>
+                <strong>Poids (avec batterie)</strong> : ~ 2,7 kg
+                <a
+                  target="_blank"
+                  rel="noopener"
+                  class="text-blue-500 underline flex h-4.5 overflow-hidden rounded-xl px-2 text-[9px] font-medium transition-colors duration-150 ease-in-out text-token-text-secondary! bg-[#F4F4F4]! dark:bg-[#303030]!"
+                  href="https://www.msi.com/Laptop/Vector-16-HX-A14VX/Specification?utm_source=chatgpt.com"
+                  >MSI+1</a
+                >
+              </p>
+            </li>
+            <li>
+              <p>
+                <strong>Dimensions (L × P × H)</strong> : 357 × 284 ×
+                22,20‑28,55 mm
+                <a
+                  target="_blank"
+                  rel="noopener"
+                  class="text-blue-500 underline flex h-4.5 overflow-hidden rounded-xl px-2 text-[9px] font-medium transition-colors duration-150 ease-in-out text-token-text-secondary! bg-[#F4F4F4]! dark:bg-[#303030]!"
+                  href="https://www.msi.com/Laptop/Vector-16-HX-A14VX/Specification?utm_source=chatgpt.com"
+                  >MSI+1</a
+                >
+              </p>
+            </li>
+            <li>
+              <p>
+                <strong>Batterie</strong> : 4 cellules, 90 Whr
+                <a
+                  target="_blank"
+                  rel="noopener"
+                  class="text-blue-500 underline flex h-4.5 overflow-hidden rounded-xl px-2 text-[9px] font-medium transition-colors duration-150 ease-in-out text-token-text-secondary! bg-[#F4F4F4]! dark:bg-[#303030]!"
+                  href="https://www.msi.com/Laptop/Vector-16-HX-A14VX/Specification?utm_source=chatgpt.com"
+                  >MSI+1</a
+                >
+              </p>
+            </li>
+            <li>
+              <p>
+                <strong>Alimentation</strong> : adaptateur 280 W (variable selon
+                configuration)
+                <a
+                  target="_blank"
+                  rel="noopener"
+                  class="text-blue-500 underline flex h-4.5 overflow-hidden rounded-xl px-2 text-[9px] font-medium transition-colors duration-150 ease-in-out text-token-text-secondary! bg-[#F4F4F4]! dark:bg-[#303030]!"
+                  href="https://us-store.msi.com/Laptops/Gaming-Series/Vector-GP-Series/Vector-16-HX-A14VGG-254US?utm_source=chatgpt.com"
+                  >MSI Store+1</a
+                >
+              </p>
+            </li>
+            <li>
+              <p>
+                <strong>Connectique</strong> :<br />  • 1 × Thunderbolt™ 4
+                (DisplayPort)
+                <a
+                  target="_blank"
+                  rel="noopener"
+                  class="text-blue-500 underline flex h-4.5 overflow-hidden rounded-xl px-2 text-[9px] font-medium transition-colors duration-150 ease-in-out text-token-text-secondary! bg-[#F4F4F4]! dark:bg-[#303030]!"
+                  href="https://www.msi.com/Laptop/Vector-16-HX-A14VX/Specification?utm_source=chatgpt.com"
+                  >MSI+2MSI Store+2</a
+                ><br />  • 1 × USB‑C (USB 3.2 Gen2 / DisplayPort)
+                <a
+                  target="_blank"
+                  rel="noopener"
+                  class="text-blue-500 underline flex h-4.5 overflow-hidden rounded-xl px-2 text-[9px] font-medium transition-colors duration-150 ease-in-out text-token-text-secondary! bg-[#F4F4F4]! dark:bg-[#303030]!"
+                  href="https://us-store.msi.com/Laptops/Gaming-Series/Vector-GP-Series/Vector-16-HX-A14VGG-254US?utm_source=chatgpt.com"
+                  >MSI Store+2MSI+2</a
+                ><br />  • 1 × USB‑C (USB 3.2 Gen2 / DisplayPort / Power
+                Delivery)
+                <a
+                  target="_blank"
+                  rel="noopener"
+                  class="text-blue-500 underline flex h-4.5 overflow-hidden rounded-xl px-2 text-[9px] font-medium transition-colors duration-150 ease-in-out text-token-text-secondary! bg-[#F4F4F4]! dark:bg-[#303030]!"
+                  href="https://www.msi.com/Laptop/Vector-16-HX-A14VX/Specification?utm_source=chatgpt.com"
+                  >MSI+1</a
+                ><br />  • 1 × USB-A USB3.2 Gen2, 1 × USB-A USB3.2 Gen1
+                <a
+                  target="_blank"
+                  rel="noopener"
+                  class="text-blue-500 underline flex h-4.5 overflow-hidden rounded-xl px-2 text-[9px] font-medium transition-colors duration-150 ease-in-out text-token-text-secondary! bg-[#F4F4F4]! dark:bg-[#303030]!"
+                  href="https://www.msi.com/Laptop/Vector-16-HX-A14VX/Specification?utm_source=chatgpt.com"
+                  >MSI+2MSI+2</a
+                ><br />  • 1 × HDMI 2.1 (8K @ 60 Hz / 4K @ 120 Hz)
+                <a
+                  target="_blank"
+                  rel="noopener"
+                  class="text-blue-500 underline flex h-4.5 overflow-hidden rounded-xl px-2 text-[9px] font-medium transition-colors duration-150 ease-in-out text-token-text-secondary! bg-[#F4F4F4]! dark:bg-[#303030]!"
+                  href="https://www.msi.com/Laptop/Vector-16-HX-A14VX/Specification?utm_source=chatgpt.com"
+                  >MSI+2MSI+2</a
+                ><br />  • 1 × lecteur SD Express (SD 7.0)
+                <a
+                  target="_blank"
+                  rel="noopener"
+                  class="text-blue-500 underline flex h-4.5 overflow-hidden rounded-xl px-2 text-[9px] font-medium transition-colors duration-150 ease-in-out text-token-text-secondary! bg-[#F4F4F4]! dark:bg-[#303030]!"
+                  href="https://us-store.msi.com/Laptops/Gaming-Series/Vector-GP-Series/Vector-16-HX-A14VGG-254US?utm_source=chatgpt.com"
+                  >MSI Store+2MSI+2</a
+                ><br />  • 1 × port RJ‑45 (LAN)
+                <a
+                  target="_blank"
+                  rel="noopener"
+                  class="text-blue-500 underline flex h-4.5 overflow-hidden rounded-xl px-2 text-[9px] font-medium transition-colors duration-150 ease-in-out text-token-text-secondary! bg-[#F4F4F4]! dark:bg-[#303030]!"
+                  href="https://www.msi.com/Laptop/Vector-16-HX-A14VX/Specification?utm_source=chatgpt.com"
+                  >MSI+2MSI+2</a
+                >
+              </p>
+            </li>
+            <li>
+              <p>
+                <strong>Webcam</strong> : 720p HD avec volet de confidentialité
+                (shutter)
+                <a
+                  target="_blank"
+                  rel="noopener"
+                  class="text-blue-500 underline flex h-4.5 overflow-hidden rounded-xl px-2 text-[9px] font-medium transition-colors duration-150 ease-in-out text-token-text-secondary! bg-[#F4F4F4]! dark:bg-[#303030]!"
+                  href="https://www.msi.com/Laptop/Vector-16-HX-A14VX?utm_source=chatgpt.com"
+                  >MSI+2MSI Store+2</a
+                >
+              </p>
+            </li>
+            <li>
+              <p>
+                <strong>Clavier</strong> : SteelSeries per-key RGB anti‑ghost
+                (rétroéclairé touche à touche)
+                <a
+                  target="_blank"
+                  rel="noopener"
+                  class="text-blue-500 underline flex h-4.5 overflow-hidden rounded-xl px-2 text-[9px] font-medium transition-colors duration-150 ease-in-out text-token-text-secondary! bg-[#F4F4F4]! dark:bg-[#303030]!"
+                  href="https://www.ldlc.com/fr-lu/fiche/PB00587921.html?utm_source=chatgpt.com"
+                  >LDLC+2MSI Store+2</a
+                >
+              </p>
+            </li>
+            <li>
+              <p>
+                <strong>Système de refroidissement</strong> : Cooler Boost 5 (2
+                ventilateurs + 6 caloducs, design optimisé)
+                <a
+                  target="_blank"
+                  rel="noopener"
+                  class="text-blue-500 underline flex h-4.5 overflow-hidden rounded-xl px-2 text-[9px] font-medium transition-colors duration-150 ease-in-out text-token-text-secondary! bg-[#F4F4F4]! dark:bg-[#303030]!"
+                  href="https://www.msi.com/Laptop/Vector-16-HX-A14VX?utm_source=chatgpt.com"
+                  >MSI+2LDLC+2</a
+                >
+              </p>
+            </li>
+            <li>
+              <p>
+                <strong>Système d’exploitation</strong> : Windows 11 (version
+                selon distribution)
+                <a
+                  target="_blank"
+                  rel="noopener"
+                  class="text-blue-500 underline flex h-4.5 overflow-hidden rounded-xl px-2 text-[9px] font-medium transition-colors duration-150 ease-in-out text-token-text-secondary! bg-[#F4F4F4]! dark:bg-[#303030]!"
+                  href="https://www.msi.com/Laptop/Vector-16-HX-A14VX/Specification?utm_source=chatgpt.com"
+                  >MSI+2MSI+2</a
+                >
+              </p>
+            </li>
+          </ul>
+          <p>
+            <em
+              >(Remarque : certaines variantes du Vector 16 HX utilisent une RTX
+              4080 ou 4090, selon la configuration – ici la version 4070 est
+              celle décrite) </em
+            ><a
+              target="_blank"
+              rel="noopener"
+              class="text-blue-500 underline flex h-4.5 overflow-hidden rounded-xl px-2 text-[9px] font-medium transition-colors duration-150 ease-in-out text-token-text-secondary! bg-[#F4F4F4]! dark:bg-[#303030]!"
+              href="https://www.msi.com/Laptop/Vector-16-HX-A14VX/Specification?utm_source=chatgpt.com"
+              ><em>MSI+1</em></a
+            >
+          </p>
+          <hr />
+          <h3>Points forts</h3>
+          <ul>
+            <li>
+              <p>
+                Puissance extrême avec
+                <strong>Intel i9‑14900HX + RTX 4070</strong>
+              </p>
+            </li>
+            <li>
+              <p>
+                Écran <strong>240 Hz QHD+</strong> pour une fluidité optimale
+              </p>
+            </li>
+            <li>
+              <p>
+                Refroidissement <strong>Cooler Boost 5</strong> performant en
+                charge
+              </p>
+            </li>
+            <li>
+              <p>
+                Clavier
+                <strong>SteelSeries RGB touche par touche</strong>
+                personnalisable
+              </p>
+            </li>
+            <li>
+              <p>
+                Format compact avec un bon rapport puissance/poids (~ 2,7 kg)
+              </p>
+            </li>
+          </ul>
+          <hr />
+          <h3>Idéal pour…</h3>
+          <ul>
+            <li>
+              <p>
+                Les <strong>sessions de jeu prolongées</strong> en AAA ou
+                esports
+              </p>
+            </li>
+            <li>
+              <p>
+                Le <strong>montage vidéo / motion design / rendu 3D</strong>
+              </p>
+            </li>
+            <li>
+              <p>
+                Le <strong>streaming et création de contenu</strong> (Twitch,
+                YouTube)
+              </p>
+            </li>
+            <li>
+              <p>
+                Le <strong>travail intensif multitâche</strong> (IDE, VM,
+                développement, simulation)
+              </p>
+            </li>
+            <li>
+              <p>
+                Les
+                <strong>compétitions gaming locales ou LAN</strong> requérant
+                réactivité et performance
+              </p>
+            </li>
+          </ul>
+        </div>
       </div>
     </div>
-
-    <!-- Description -->
-    <section class="border-t border-neutral-200 pt-8 mb-12">
-      <h2 class="text-lg font-semibold text-neutral-900 mb-3">Description</h2>
-      <p class="text-neutral-600 whitespace-pre-line max-w-3xl">
-        {{ product.description }}
-      </p>
-    </section>
 
     <!-- Suggested products -->
     <section>
       <h2 class="text-xl font-bold text-neutral-900 mb-6">
         Vous aimerez aussi
       </h2>
-      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-        <ProductCard
-          v-for="item in suggestedProducts"
-          :key="item.id"
-          :to="`/products/${item.slug}`"
-          :image="item.image"
-          :title="item.title"
-          :current-price="item.currentPrice"
-          :old-price="item.oldPrice"
-          :stock-status="item.stockStatus"
-        />
-      </div>
+      <UCarousel
+        v-slot="{ item }"
+        :items="suggestedProducts"
+        :slides-to-scroll="1"
+        :ui="{
+          item: 'basis-1/2 sm:basis-1/3 lg:basis-1/4 shrink-0',
+          container: 'gap-3',
+          viewport: 'overflow-hidden',
+        }"
+        arrows
+        :prev="{
+          color: 'neutral',
+          variant: 'ghost',
+          icon: 'i-lucide-chevron-left',
+          class: 'hidden sm:flex -left-4 top-1/2 -translate-y-1/2 rounded-full',
+        }"
+        :next="{
+          color: 'neutral',
+          variant: 'ghost',
+          icon: 'i-lucide-chevron-right',
+          class: 'hidden sm:flex -right-4 top-1/2 -translate-y-1/2 rounded-full',
+        }"
+        class="relative"
+      >
+        <div class="py-1">
+          <ProductCard
+            :to="`/products/${item.slug}`"
+            :image="item.image"
+            :title="item.title"
+            :current-price="item.currentPrice"
+            :old-price="item.oldPrice"
+            :stock-status="item.stockStatus"
+          />
+        </div>
+      </UCarousel>
     </section>
   </UContainer>
 </template>
