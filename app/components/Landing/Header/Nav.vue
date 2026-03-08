@@ -1,6 +1,32 @@
 <script setup lang="ts">
 import type { DropdownMenuItem } from "@nuxt/ui";
 
+interface MegaMenuLink {
+  label: string;
+  to: string;
+}
+
+interface MegaMenuSection {
+  label: string;
+  links: MegaMenuLink[];
+}
+
+interface MegaMenuColumn {
+  sections: MegaMenuSection[];
+}
+
+interface MegaMenuFeature {
+  eyebrow: string;
+  title: string;
+  description: string;
+  priceLabel: string;
+  to: string;
+  ctaLabel: string;
+  helperText: string;
+  helperLinkLabel: string;
+  helperLinkTo: string;
+}
+
 const items = ref<DropdownMenuItem[][]>([
   [
     {
@@ -465,6 +491,89 @@ const items = ref<DropdownMenuItem[][]>([
     },
   ],
 ]);
+
+const megaMenuColumns = ref<MegaMenuColumn[]>([
+  {
+    sections: [
+      {
+        label: "PC & Ordinateur",
+        links: [
+          { label: "PC Gamer", to: "#" },
+          { label: "PC Professionnel", to: "#" },
+          { label: "PC par jeu", to: "#" },
+          { label: "PC par budget", to: "#" },
+        ],
+      },
+      {
+        label: "PC Portables & Mac",
+        links: [
+          { label: "PC Portables Gamer", to: "#" },
+          { label: "PC Portables Professionnels", to: "#" },
+          { label: "Mac & Univers Apple", to: "#" },
+        ],
+      },
+    ],
+  },
+  {
+    sections: [
+      {
+        label: "Composants",
+        links: [
+          { label: "Processeurs", to: "#" },
+          { label: "Cartes graphiques", to: "#" },
+          { label: "Cartes mères", to: "#" },
+          { label: "Mémoire RAM", to: "#" },
+          { label: "Stockage", to: "#" },
+        ],
+      },
+      {
+        label: "Périphériques",
+        links: [
+          { label: "Claviers & Souris", to: "#" },
+          { label: "Casques & Audio", to: "#" },
+          { label: "Webcams & Micro", to: "#" },
+          { label: "Tapis & Accessoires", to: "#" },
+        ],
+      },
+    ],
+  },
+  {
+    sections: [
+      {
+        label: "Composants (sélection)",
+        links: [
+          { label: "Processeurs", to: "#" },
+          { label: "Cartes graphiques", to: "#" },
+          { label: "Cartes mères", to: "#" },
+          { label: "Mémoire RAM", to: "#" },
+          { label: "Stockage", to: "#" },
+        ],
+      },
+      {
+        label: "Périphériques (sélection)",
+        links: [
+          { label: "Claviers & Souris", to: "#" },
+          { label: "Casques & Audio", to: "#" },
+          { label: "Webcams & Micro", to: "#" },
+          { label: "Tapis & Accessoires", to: "#" },
+        ],
+      },
+    ],
+  },
+]);
+
+const megaMenuFeature = ref<MegaMenuFeature>({
+  eyebrow: "En avant",
+  title: "AMD Ryzen 9 5950X",
+  description:
+    "16 cœurs, 32 threads, idéal pour le gaming intensif et la création de contenu.",
+  priceLabel: "4 999 MAD",
+  to: "/products/amd-ryzen-9-5950x",
+  ctaLabel: "Voir la fiche produit",
+  helperText: "Explorez tout notre catalogue par catégorie.",
+  helperLinkLabel: "Voir tous les produits →",
+  helperLinkTo: "/products",
+});
 </script>
 
 <template>
@@ -487,199 +596,54 @@ const items = ref<DropdownMenuItem[][]>([
 
     <template #content>
       <div class="grid grid-cols-3 gap-6">
-        <!-- Column 1: PC & Ordinateur -->
-        <div class="space-y-3">
-          <p class="text-xs font-semibold uppercase text-neutral-500">
-            {{ items[1]?.[0]?.label }}
-          </p>
-          <ul class="space-y-1.5 text-sm">
-            <li>
-              <NuxtLink to="#" class="hover:text-primary-700"
-                >PC Gamer</NuxtLink
-              >
-            </li>
-            <li>
-              <NuxtLink to="#" class="hover:text-primary-700">
-                PC Professionnel
-              </NuxtLink>
-            </li>
-            <li>
-              <NuxtLink to="#" class="hover:text-primary-700">
-                PC par jeu
-              </NuxtLink>
-            </li>
-            <li>
-              <NuxtLink to="#" class="hover:text-primary-700">
-                PC par budget
-              </NuxtLink>
-            </li>
-          </ul>
-
-          <p class="text-xs font-semibold uppercase text-neutral-500 mt-4">
-            {{ items[2]?.[0]?.label }}
-          </p>
-          <ul class="space-y-1.5 text-sm">
-            <li>
-              <NuxtLink to="#" class="hover:text-primary-700">
-                PC Portables Gamer
-              </NuxtLink>
-            </li>
-            <li>
-              <NuxtLink to="#" class="hover:text-primary-700">
-                PC Portables Professionnels
-              </NuxtLink>
-            </li>
-            <li>
-              <NuxtLink to="#" class="hover:text-primary-700">
-                Mac & Univers Apple
-              </NuxtLink>
-            </li>
-          </ul>
+        <div
+          v-for="(column, columnIndex) in megaMenuColumns"
+          :key="columnIndex"
+          class="space-y-3"
+        >
+          <div
+            v-for="(section, sectionIndex) in column.sections"
+            :key="section.label"
+            :class="sectionIndex ? 'mt-4 space-y-1.5' : 'space-y-1.5'"
+          >
+            <p class="text-xs font-semibold uppercase text-neutral-500">
+              {{ section.label }}
+            </p>
+            <ul class="space-y-1.5 text-sm">
+              <li v-for="link in section.links" :key="link.label">
+                <NuxtLink :to="link.to" class="hover:text-primary-700">
+                  {{ link.label }}
+                </NuxtLink>
+              </li>
+            </ul>
+          </div>
         </div>
 
-        <!-- Column 2: Composants & Périphériques -->
-        <div class="space-y-3">
-          <p class="text-xs font-semibold uppercase text-neutral-500">
-            {{ items[3]?.[0]?.label }}
-          </p>
-          <ul class="space-y-1.5 text-sm">
-            <li>
-              <NuxtLink to="#" class="hover:text-primary-700">
-                Processeurs
-              </NuxtLink>
-            </li>
-            <li>
-              <NuxtLink to="#" class="hover:text-primary-700">
-                Cartes graphiques
-              </NuxtLink>
-            </li>
-            <li>
-              <NuxtLink to="#" class="hover:text-primary-700">
-                Cartes mères
-              </NuxtLink>
-            </li>
-            <li>
-              <NuxtLink to="#" class="hover:text-primary-700">
-                Mémoire RAM
-              </NuxtLink>
-            </li>
-            <li>
-              <NuxtLink to="#" class="hover:text-primary-700"
-                >Stockage</NuxtLink
-              >
-            </li>
-          </ul>
-
-          <p class="text-xs font-semibold uppercase text-neutral-500 mt-4">
-            {{ items[4]?.[0]?.label }}
-          </p>
-          <ul class="space-y-1.5 text-sm">
-            <li>
-              <NuxtLink to="#" class="hover:text-primary-700">
-                Claviers & Souris
-              </NuxtLink>
-            </li>
-            <li>
-              <NuxtLink to="#" class="hover:text-primary-700">
-                Casques & Audio
-              </NuxtLink>
-            </li>
-            <li>
-              <NuxtLink to="#" class="hover:text-primary-700">
-                Webcams & Micro
-              </NuxtLink>
-            </li>
-            <li>
-              <NuxtLink to="#" class="hover:text-primary-700">
-                Tapis & Accessoires
-              </NuxtLink>
-            </li>
-          </ul>
-        </div>
-
-        <!-- Column 3: Composants & Périphériques -->
-        <div class="space-y-3">
-          <p class="text-xs font-semibold uppercase text-neutral-500">
-            {{ items[3]?.[0]?.label }}
-          </p>
-          <ul class="space-y-1.5 text-sm">
-            <li>
-              <NuxtLink to="#" class="hover:text-primary-700">
-                Processeurs
-              </NuxtLink>
-            </li>
-            <li>
-              <NuxtLink to="#" class="hover:text-primary-700">
-                Cartes graphiques
-              </NuxtLink>
-            </li>
-            <li>
-              <NuxtLink to="#" class="hover:text-primary-700">
-                Cartes mères
-              </NuxtLink>
-            </li>
-            <li>
-              <NuxtLink to="#" class="hover:text-primary-700">
-                Mémoire RAM
-              </NuxtLink>
-            </li>
-            <li>
-              <NuxtLink to="#" class="hover:text-primary-700"
-                >Stockage</NuxtLink
-              >
-            </li>
-          </ul>
-
-          <p class="text-xs font-semibold uppercase text-neutral-500 mt-4">
-            {{ items[4]?.[0]?.label }}
-          </p>
-          <ul class="space-y-1.5 text-sm">
-            <li>
-              <NuxtLink to="#" class="hover:text-primary-700">
-                Claviers & Souris
-              </NuxtLink>
-            </li>
-            <li>
-              <NuxtLink to="#" class="hover:text-primary-700">
-                Casques & Audio
-              </NuxtLink>
-            </li>
-            <li>
-              <NuxtLink to="#" class="hover:text-primary-700">
-                Webcams & Micro
-              </NuxtLink>
-            </li>
-            <li>
-              <NuxtLink to="#" class="hover:text-primary-700">
-                Tapis & Accessoires
-              </NuxtLink>
-            </li>
-          </ul>
-        </div>
-
-        <!-- Column 3: Feature card + links -->
         <div
           class="col-span-3 rounded-xl bg-neutral-100/80 border border-neutral-200 p-4 flex flex-col justify-between gap-3"
         >
           <div>
             <p class="text-xs font-semibold uppercase text-neutral-500 mb-1">
-              En avant
+              {{ megaMenuFeature.eyebrow }}
             </p>
-            <p class="text-sm font-semibold mb-1">AMD Ryzen 9 5950X</p>
+            <p class="text-sm font-semibold mb-1">
+              {{ megaMenuFeature.title }}
+            </p>
             <p class="text-xs text-neutral-600 mb-3">
-              16 cœurs, 32 threads, idéal pour le gaming intensif et la création
-              de contenu.
+              {{ megaMenuFeature.description }}
             </p>
           </div>
 
           <div class="flex items-center justify-between gap-3">
-            <p class="text-lg font-bold text-primary-700">4 999 MAD</p>
+            <p class="text-lg font-bold text-primary-700">
+              {{ megaMenuFeature.priceLabel }}
+            </p>
             <UButton
               size="xs"
               color="primary"
               variant="solid"
-              label="Voir la fiche produit"
-              to="/products/amd-ryzen-9-5950x"
+              :label="megaMenuFeature.ctaLabel"
+              :to="megaMenuFeature.to"
             />
           </div>
 
@@ -687,13 +651,13 @@ const items = ref<DropdownMenuItem[][]>([
             class="mt-3 pt-3 border-t border-neutral-200 flex justify-between items-center"
           >
             <span class="text-[11px] text-neutral-500">
-              Explorez tout notre catalogue par catégorie.
+              {{ megaMenuFeature.helperText }}
             </span>
             <NuxtLink
-              to="/products"
+              :to="megaMenuFeature.helperLinkTo"
               class="text-[11px] font-semibold text-primary-700 hover:underline"
             >
-              Voir tous les produits →
+              {{ megaMenuFeature.helperLinkLabel }}
             </NuxtLink>
           </div>
         </div>

@@ -2,6 +2,11 @@
 @import "@nuxt/ui";
 @plugin "@tailwindcss/typography";
 
+
+:root {
+  font-family: 'Space Grotesk', sans-serif;
+}
+
 @theme static {
   --font-sans: 'Space Grotesk', sans-serif;
 
