@@ -119,8 +119,17 @@ definePageMeta({
                 block
                 color="neutral"
                 variant="soft"
+                icon="i-lucide-tag"
+                label="Gérer les marques"
+                to="/dashboard/brands"
+              />
+              <UButton
+                block
+                color="neutral"
+                variant="soft"
                 icon="i-lucide-shopping-bag"
                 label="Voir les produits"
+                to="/dashboard/products"
               />
               <UButton
                 block

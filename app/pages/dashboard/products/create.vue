@@ -31,9 +31,9 @@ const schema = z.object({
   sku: z.string().min(1, "SKU requis"),
   description: z.string().optional(),
   short_description: z.string().optional(),
-  category_id: z.number().optional().nullable(),
+  category_id: z.number({ required_error: "Catégorie requise" }),
   subcategory_id: z.number().optional().nullable(),
-  brand_id: z.number().optional().nullable(),
+  brand_id: z.number({ required_error: "Marque requise" }),
   price: z.coerce
     .string()
     .min(1, "Prix requis")
@@ -77,6 +77,21 @@ const { data: brandsData } = await useAPIFetch<Brand[]>("/brands");
 const uploadedImages = ref<Array<{ id: number; url: string }>>([]);
 const uploading = ref(false);
 const saving = ref(false);
+
+const brandItems = computed(() =>
+  (brandsData.value ?? []).map((b) => ({
+    label: b.name,
+    value: b.id,
+    avatar: b.image ? { src: b.image } : undefined,
+  })),
+);
+
+const subcategoryIdModel = computed({
+  get: () => state.subcategory_id ?? undefined,
+  set: (v: number | undefined) => {
+    state.subcategory_id = v;
+  },
+});
 
 const filteredSubcategories = computed(() => {
   if (state.category_id == null) return [];
@@ -182,9 +197,9 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
         sku: data.sku.trim(),
         description: (data.description ?? "").trim() || null,
         short_description: (data.short_description ?? "").trim() || null,
-        category_id: data.category_id ?? null,
+        category_id: data.category_id,
         subcategory_id: data.subcategory_id ?? null,
-        brand_id: data.brand_id ?? null,
+        brand_id: data.brand_id,
         price: parseFloat(data.price),
         compare_at_price: data.compare_at_price ? parseFloat(data.compare_at_price) : null,
         stock_status: data.stock_status,
@@ -433,21 +448,29 @@ function submitForm() {
                   <h3 class="text-sm font-semibold text-neutral-800">Organisation</h3>
                 </template>
                 <div class="space-y-3">
-                  <UFormField label="Marque" name="brand_id" class="w-full">
+                  <UFormField label="Marque" name="brand_id" required class="w-full">
                     <USelectMenu
                       v-model="state.brand_id"
-                      :items="(brandsData ?? []).map((b) => ({ label: b.name, value: b.id }))"
-                      placeholder="Sélectionner"
+                      :items="brandItems"
+                      placeholder="Sélectionner une marque"
                       size="md"
                       class="w-full"
                       label-key="label"
-                      value-key="value" />
+                      value-key="value">
+                      <template #leading>
+                        <UAvatar
+                          v-if="state.brand_id && brandsData?.find((b) => b.id === state.brand_id)?.image"
+                          :src="brandsData?.find((b) => b.id === state.brand_id)?.image ?? ''"
+                          size="xs"
+                          class="shrink-0" />
+                      </template>
+                    </USelectMenu>
                   </UFormField>
-                  <UFormField label="Catégorie" name="category_id" class="w-full">
+                  <UFormField label="Catégorie" name="category_id" required class="w-full">
                     <USelectMenu
                       v-model="state.category_id"
                       :items="(categoriesData ?? []).map((c) => ({ label: c.name, value: c.id }))"
-                      placeholder="Sélectionner"
+                      placeholder="Sélectionner une catégorie"
                       size="md"
                       class="w-full"
                       label-key="label"
@@ -455,7 +478,7 @@ function submitForm() {
                   </UFormField>
                   <UFormField label="Sous-catégorie" name="subcategory_id" class="w-full">
                     <USelectMenu
-                      v-model="state.subcategory_id"
+                      v-model="subcategoryIdModel"
                       :items="filteredSubcategories.map((s) => ({ label: s.name, value: s.id }))"
                       placeholder="Sélectionner"
                       size="md"

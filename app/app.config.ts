@@ -22,8 +22,8 @@ export default defineAppConfig({
     },
     card: {
       slots: {
-        header: 'sm:p-3 p-3',
-        body: 'sm:p-3 p-3'
+        header: 'sm:p-3 p-3 sm:pb-0 sm:py-2 bg-neutral-50 border-b border-muted',
+        body: 'sm:p-3 p-3 overflow-auto max-h-full'
       },
       variants: {
         variant: {

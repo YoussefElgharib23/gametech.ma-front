@@ -308,12 +308,14 @@ function onAddToCart() {
         <div class="flex flex-col">
           <!-- Brand -->
           <div v-if="product.brand" class="flex items-center gap-2 mb-3">
-            <NuxtImg
-              v-if="product.brand.image"
-              :src="product.brand.image"
-              :alt="product.brand.name"
-              class="size-8 object-contain" />
-            <span class="text-sm font-medium text-neutral-500">{{ product.brand.name }}</span>
+            <div class="ring ring-accented rounded-md overflow-hidden">
+              <NuxtImg
+                v-if="product.brand.image"
+                :src="product.brand.image"
+                :alt="product.brand.name"
+                class="size-8 object-contain" />
+            </div>
+            <span class="font-medium text-neutral-500">{{ product.brand.name }}</span>
           </div>
 
           <h1 class="text-2xl sm:text-3xl font-bold text-neutral-900 tracking-tight mb-3">

@@ -275,20 +275,35 @@ function getStatusLabel(status: string) {
 
           <template #actions-cell="{ row }">
             <div class="flex items-center justify-end gap-1">
-              <UButton
-                icon="i-lucide-pencil"
-                color="neutral"
-                variant="ghost"
-                size="xs"
-                aria-label="Modifier"
-                :to="`/dashboard/products/${row.original.id}/edit`" />
-              <UButton
-                icon="i-lucide-trash-2"
-                color="error"
-                variant="ghost"
-                size="xs"
-                aria-label="Supprimer"
-                @click="openDelete(row.original)" />
+              <UTooltip text="Voir le produit" :delay-duration="0">
+                <UButton
+                  icon="i-lucide-eye"
+                  color="neutral"
+                  variant="ghost"
+                  size="xs"
+                  aria-label="Voir le produit"
+                  :to="`/products/${row.original.slug}`"
+                  target="_blank"
+                  rel="noopener noreferrer" />
+              </UTooltip>
+              <UTooltip text="Modifier le produit" :delay-duration="0">
+                <UButton
+                  icon="i-lucide-pencil"
+                  color="neutral"
+                  variant="ghost"
+                  size="xs"
+                  aria-label="Modifier"
+                  :to="`/dashboard/products/${row.original.id}/edit`" />
+              </UTooltip>
+              <UTooltip text="Supprimer le produit" :delay-duration="0">
+                <UButton
+                  icon="i-lucide-trash-2"
+                  color="error"
+                  variant="ghost"
+                  size="xs"
+                  aria-label="Supprimer"
+                  @click="openDelete(row.original)" />
+              </UTooltip>
             </div>
           </template>
         </UTable>

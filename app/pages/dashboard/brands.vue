@@ -3,29 +3,28 @@ definePageMeta({
   layout: "dashboard",
 });
 
-interface Category {
+interface Brand {
   id: number;
   name: string;
   slug: string;
   image: string | null;
   status: "active" | "inactive";
-  position: number;
 }
 
-const { data: categoriesData, refresh } = await useAPIFetch<Category[]>("/categories");
+const { data: brandsData, refresh } = await useAPIFetch<Brand[]>("/brands");
 
 const search = ref("");
-const filteredCategories = computed(() => {
-  const list = categoriesData.value ?? [];
+const filteredBrands = computed(() => {
+  const list = brandsData.value ?? [];
   const term = search.value.trim().toLowerCase();
   if (!term) return list;
-  return list.filter((cat) => [cat.name, cat.slug].filter(Boolean).some((field) => field!.toLowerCase().includes(term)));
+  return list.filter((b) => [b.name, b.slug].filter(Boolean).some((field) => field!.toLowerCase().includes(term)));
 });
 
-const categoryColumns = [
+const brandColumns = [
   {
     accessorKey: "name",
-    header: "Catégorie",
+    header: "Marque",
     meta: { class: { td: "min-w-0" } },
   },
   {
@@ -36,7 +35,7 @@ const categoryColumns = [
   {
     id: "actions",
     header: "",
-    meta: { class: { td: "w-36 text-right" } },
+    meta: { class: { td: "w-28 text-right" } },
   },
 ];
 
@@ -44,18 +43,17 @@ const toast = useToast();
 const modalOpen = ref(false);
 const deleteModalOpen = ref(false);
 const editingId = ref<number | null>(null);
-const deletingCategory = ref<Category | null>(null);
+const deletingBrand = ref<Brand | null>(null);
 const saving = ref(false);
 const uploading = ref(false);
 const form = ref({
   name: "",
   image: "",
-  status: true as boolean, // true = active, false = inactive
-  position: 0,
+  status: true as boolean,
 });
 
 function triggerImageInput() {
-  const input = document.getElementById("category-image-upload") as HTMLInputElement | null;
+  const input = document.getElementById("brand-image-upload") as HTMLInputElement | null;
   input?.click();
 }
 
@@ -67,10 +65,11 @@ async function onImageChange(event: Event) {
   try {
     const body = new FormData();
     body.append("file", file);
-    body.append("directory", "categories");
+    body.append("directory", "brands");
     const upload = await $apiFetch<{ id: number; url: string }>("/uploads/preview", { method: "POST", body });
     form.value.image = upload.url;
   } catch {
+    toast.add({ title: "Erreur lors du téléchargement", color: "error" });
   } finally {
     uploading.value = false;
     target.value = "";
@@ -82,27 +81,26 @@ function clearImage() {
 }
 
 const isEditing = computed(() => editingId.value != null);
-const modalTitle = computed(() => (isEditing.value ? "Modifier la catégorie" : "Nouvelle catégorie"));
+const modalTitle = computed(() => (isEditing.value ? "Modifier la marque" : "Nouvelle marque"));
 
 function openCreate() {
   editingId.value = null;
-  form.value = { name: "", image: "", status: true, position: 0 };
+  form.value = { name: "", image: "", status: true };
   modalOpen.value = true;
 }
 
-function openEdit(cat: Category) {
-  editingId.value = cat.id;
+function openEdit(brand: Brand) {
+  editingId.value = brand.id;
   form.value = {
-    name: cat.name,
-    image: cat.image ?? "",
-    status: cat.status === "active",
-    position: cat.position,
+    name: brand.name,
+    image: brand.image ?? "",
+    status: brand.status === "active",
   };
   modalOpen.value = true;
 }
 
-function openDelete(cat: Category) {
-  deletingCategory.value = cat;
+function openDelete(brand: Brand) {
+  deletingBrand.value = brand;
   deleteModalOpen.value = true;
 }
 
@@ -113,41 +111,36 @@ function closeModal() {
 
 function closeDeleteModal() {
   deleteModalOpen.value = false;
-  deletingCategory.value = null;
+  deletingBrand.value = null;
 }
 
 async function submitForm() {
   if (!form.value.name.trim()) {
-    toast.add({
-      title: "Nom requis",
-      color: "error",
-    });
+    toast.add({ title: "Nom requis", color: "error" });
     return;
   }
   saving.value = true;
   try {
     if (isEditing.value && editingId.value != null) {
-      await $apiFetch(`/categories/${editingId.value}`, {
+      await $apiFetch(`/brands/${editingId.value}`, {
         method: "PUT",
         body: {
           name: form.value.name.trim(),
           image: form.value.image.trim() || null,
           status: form.value.status ? "active" : "inactive",
-          position: form.value.position,
         },
       });
-      toast.add({ title: "Catégorie mise à jour", color: "success" });
+      toast.add({ title: "Marque mise à jour", color: "success" });
     } else {
-      await $apiFetch("/categories", {
+      await $apiFetch("/brands", {
         method: "POST",
         body: {
           name: form.value.name.trim(),
           image: form.value.image.trim() || null,
           status: form.value.status ? "active" : "inactive",
-          position: form.value.position,
         },
       });
-      toast.add({ title: "Catégorie créée", color: "success" });
+      toast.add({ title: "Marque créée", color: "success" });
     }
     await refresh();
     closeModal();
@@ -162,12 +155,12 @@ async function submitForm() {
 }
 
 async function confirmDelete() {
-  if (!deletingCategory.value) return;
-  const id = deletingCategory.value.id;
+  if (!deletingBrand.value) return;
+  const id = deletingBrand.value.id;
   saving.value = true;
   try {
-    await $apiFetch(`/categories/${id}`, { method: "DELETE" });
-    toast.add({ title: "Catégorie supprimée", color: "success" });
+    await $apiFetch(`/brands/${id}`, { method: "DELETE" });
+    toast.add({ title: "Marque supprimée", color: "success" });
     await refresh();
     closeDeleteModal();
   } catch {
@@ -184,9 +177,9 @@ async function confirmDelete() {
 <template>
   <UDashboardPanel>
     <template #header>
-      <UDashboardNavbar title="Catégories">
+      <UDashboardNavbar title="Marques">
         <template #right>
-          <UButton icon="i-lucide-plus" label="Ajouter une catégorie" color="primary" @click="openCreate" />
+          <UButton icon="i-lucide-plus" label="Ajouter une marque" color="primary" @click="openCreate" />
         </template>
       </UDashboardNavbar>
     </template>
@@ -198,17 +191,17 @@ async function confirmDelete() {
             <UInput
               v-model="search"
               icon="i-lucide-search"
-              placeholder="Rechercher une catégorie…"
+              placeholder="Rechercher une marque…"
               size="md"
               class="max-w-sm w-full" />
           </div>
         </template>
 
-        <div v-if="!filteredCategories.length" class="py-12 text-center text-neutral-500">
-          Aucune catégorie. Cliquez sur « Ajouter une catégorie » pour commencer.
+        <div v-if="!filteredBrands.length" class="py-12 text-center text-neutral-500">
+          Aucune marque. Cliquez sur « Ajouter une marque » pour commencer.
         </div>
 
-        <UTable v-else :data="filteredCategories" :columns="categoryColumns">
+        <UTable v-else :data="filteredBrands" :columns="brandColumns">
           <template #name-cell="{ row }">
             <div class="flex items-center gap-3">
               <div class="h-10 w-10 shrink-0 overflow-hidden rounded border border-neutral-200 bg-neutral-100">
@@ -232,16 +225,7 @@ async function confirmDelete() {
             </UBadge>
           </template>
           <template #actions-cell="{ row }">
-            <div class="bg-neutral-50 rounded-lg border border-muted p-1 inline-flex items-center justify-end gap-1">
-              <UTooltip :delay-duration="0" text="Sous-catégories">
-                <UButton
-                  icon="i-lucide-folder-tree"
-                  color="neutral"
-                  variant="soft"
-                  size="xs"
-                  aria-label="Sous-catégories"
-                  :to="`/dashboard/subcategories?category_id=${row.original.id}`" />
-              </UTooltip>
+            <div class="inline-flex items-center justify-end gap-1 rounded-lg border border-neutral-200 bg-neutral-50 p-1">
               <UTooltip :delay-duration="0" text="Modifier">
                 <UButton
                   icon="i-lucide-pencil"
@@ -271,37 +255,37 @@ async function confirmDelete() {
   <UModal
     v-model:open="modalOpen"
     :title="modalTitle"
-    @close="closeModal"
     :ui="{
       header: 'sm:p-3 p-3',
       body: 'sm:p-3 p-3',
       footer: 'sm:p-3 p-3',
       content: 'divide-y-0',
-    }">
+    }"
+    @close="closeModal">
     <template #body>
       <form class="w-full space-y-4" @submit.prevent="submitForm">
         <UFormField label="Nom" required class="w-full">
-          <UInput v-model="form.name" placeholder="Ex. CARTE GRAPHIQUE" size="lg" class="w-full" />
+          <UInput v-model="form.name" placeholder="Ex. AMD, MSI, Corsair" size="lg" class="w-full" />
         </UFormField>
         <UFormField label="Statut" class="w-full">
           <USwitch
             v-model="form.status"
-            label="Activer la catégorie"
+            label="Activer la marque"
             :description="form.status ? 'Visible sur la boutique' : 'Masquée sur la boutique'" />
         </UFormField>
-        <UFormField label="Image (optionnel)" class="w-full">
+        <UFormField label="Logo (optionnel)" class="w-full">
           <div class="flex w-full flex-col items-start gap-3">
             <div
               v-if="form.image"
               class="relative h-32 w-32 shrink-0 overflow-hidden rounded-lg border border-neutral-200 bg-neutral-100">
-              <img :src="form.image" alt="Aperçu" class="h-full w-full object-cover" />
+              <img :src="form.image" alt="Aperçu" class="h-full w-full object-contain" />
               <UButton
                 icon="i-lucide-x"
                 color="error"
                 variant="outline"
                 size="xs"
                 class="absolute right-1 top-1"
-                aria-label="Supprimer l'image"
+                aria-label="Supprimer le logo"
                 @click="clearImage" />
             </div>
             <UButton
@@ -310,11 +294,11 @@ async function confirmDelete() {
               size="lg"
               icon="i-lucide-upload-cloud"
               class="max-w-xs"
-              :label="uploading ? 'Téléchargement…' : form.image ? 'Changer l\'image' : 'Choisir une image'"
+              :label="uploading ? 'Téléchargement…' : form.image ? 'Changer le logo' : 'Choisir un logo'"
               :loading="uploading"
               @click="triggerImageInput" />
           </div>
-          <input id="category-image-upload" type="file" class="hidden" accept="image/*" @change="onImageChange" />
+          <input id="brand-image-upload" type="file" class="hidden" accept="image/*" @change="onImageChange" />
         </UFormField>
       </form>
     </template>
@@ -329,7 +313,7 @@ async function confirmDelete() {
   <!-- Delete confirmation modal -->
   <UModal
     v-model:open="deleteModalOpen"
-    title="Supprimer la catégorie"
+    title="Supprimer la marque"
     description="Cette action est irréversible."
     :ui="{
       header: 'sm:p-3 p-3 border-none',
@@ -339,9 +323,9 @@ async function confirmDelete() {
     }"
     @close="closeDeleteModal">
     <template #body>
-      <p v-if="deletingCategory" class="text-neutral-600">
+      <p v-if="deletingBrand" class="text-neutral-600">
         Êtes-vous sûr de vouloir supprimer
-        <strong>{{ deletingCategory.name }}</strong>
+        <strong>{{ deletingBrand.name }}</strong>
         ?
       </p>
     </template>
