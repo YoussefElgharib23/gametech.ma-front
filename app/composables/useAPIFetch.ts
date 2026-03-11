@@ -8,13 +8,17 @@ const httpErrorCodes = {
 };
 
 export default function <T>(
-  path: string,
+  path: string | (() => string) | import("vue").Ref<string> | import("vue").ComputedRef<string>,
   options: any = {},
   auth_token: string | null = null,
 ) {
   const { public: config } = useRuntimeConfig();
   const { startLoading, stopLoading } = useIsLoading();
   const toast = useToast();
+
+  const pathRef = computed(() =>
+    typeof path === "function" ? (path as () => string)() : typeof path === "object" && path && "value" in path ? (path as import("vue").Ref<string>).value : path,
+  );
 
   let locale = ref<string | undefined>();
   let t: ((key: string, params?: any) => string) | null = null;
@@ -42,12 +46,10 @@ export default function <T>(
   };
 
   const bearerToken = computed(() => {
-    return auth_token || token.value;
-
-    if (path.includes("/user")) {
+    const p = pathRef.value;
+    if (typeof p === "string" && p.includes("/user")) {
       return auth_token || token.value;
     }
-
     return auth_token || token.value || visitor_token.value;
   });
 
@@ -109,7 +111,7 @@ export default function <T>(
     },
   };
 
-  return useFetch<T>(path, {
+  return useFetch<T>(pathRef, {
     ...options,
     // key: Math.random().toString(),
   });

@@ -33,6 +33,14 @@ const links = [
       },
     },
     {
+      label: "Produits",
+      icon: "i-lucide-package",
+      to: "/dashboard/products",
+      onSelect: () => {
+        open.value = false;
+      },
+    },
+    {
       label: "Inbox",
       icon: "i-lucide-inbox",
       to: "/inbox",

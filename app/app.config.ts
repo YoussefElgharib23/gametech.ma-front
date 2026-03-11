@@ -19,6 +19,19 @@ export default defineAppConfig({
           class: 'text-brand-dark-500 bg-secondary hover:bg-secondary/75 active:bg-secondary/75 disabled:bg-secondary aria-disabled:bg-secondary focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-secondary'
         }
       ],
+    },
+    card: {
+      slots: {
+        header: 'sm:p-3 p-3',
+        body: 'sm:p-3 p-3'
+      },
+      variants: {
+        variant: {
+          outline: {
+            root: 'bg-default ring ring-default divide-y-0'
+          },
+        }
+      },
     }
   }
 })
