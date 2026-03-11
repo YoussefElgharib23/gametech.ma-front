@@ -57,7 +57,7 @@ const query = computed(() => ({
   per_page: perPage,
 }));
 
-const { data: productsData, refresh } = await useAPIFetch<ProductsPaginated>("/products", {
+const { data: productsData, refresh } = await useAPIFetch<ProductsPaginated>("/dashboard/products", {
   query,
 });
 
@@ -123,7 +123,7 @@ async function confirmDelete() {
   const id = deletingProduct.value.id;
   deleting.value = true;
   try {
-    await $apiFetch(`/products/${id}`, { method: "DELETE" });
+    await $apiFetch(`/dashboard/products/${id}`, { method: "DELETE" });
     toast.add({ title: "Produit supprimé", color: "success" });
     await refresh();
     closeDeleteModal();

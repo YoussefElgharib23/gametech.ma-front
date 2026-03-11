@@ -75,7 +75,7 @@ const formRef = useTemplateRef<{
 const { data: categoriesData } = await useAPIFetch<Category[]>("/categories");
 const { data: subcategoriesData } = await useAPIFetch<Subcategory[]>("/subcategories");
 const { data: brandsData } = await useAPIFetch<Brand[]>("/brands");
-const { data: productData } = await useAPIFetch<any>(`/products/${productId.value}`);
+const { data: productData } = await useAPIFetch<any>(`/dashboard/products/${productId.value}`);
 
 const uploadedImages = ref<Array<{ id: number; url: string }>>([]);
 const uploading = ref(false);
@@ -222,7 +222,7 @@ async function onSubmit(event: { data: Schema }) {
   saving.value = true;
   formRef.value?.setErrors([]);
   try {
-    await $apiFetch(`/products/${productId.value}`, {
+    await $apiFetch(`/dashboard/products/${productId.value}`, {
       method: "PUT",
       body: {
         title: data.title.trim(),
@@ -300,12 +300,7 @@ function submitForm() {
                     class="w-full" />
                 </UFormField>
                 <UFormField label="Description" name="description" class="w-full">
-                  <UTextarea
-                    v-model="state.description"
-                    placeholder="Description détaillée du produit…"
-                    :rows="8"
-                    size="md"
-                    class="w-full" />
+                  <DashboardTextEditor v-model="state.description" placeholder="Description détaillée du produit…" />
                 </UFormField>
               </div>
             </UCard>

@@ -34,8 +34,7 @@ const schema = z.object({
   category_id: z.number().optional().nullable(),
   subcategory_id: z.number().optional().nullable(),
   brand_id: z.number().optional().nullable(),
-  price: z
-    .coerce
+  price: z.coerce
     .string()
     .min(1, "Prix requis")
     .refine((v: string) => !Number.isNaN(parseFloat(v)) && parseFloat(v) >= 0, "Prix doit être un nombre positif ou zéro"),
@@ -176,7 +175,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
   saving.value = true;
   formRef.value?.setErrors([]);
   try {
-    await $apiFetch("/products", {
+    await $apiFetch("/dashboard/products", {
       method: "POST",
       body: {
         title: data.title.trim(),
@@ -261,12 +260,7 @@ function submitForm() {
                       class="w-full" />
                   </UFormField>
                   <UFormField label="Description" name="description" class="w-full">
-                    <UTextarea
-                      v-model="state.description"
-                      placeholder="Description détaillée du produit…"
-                      :rows="8"
-                      size="md"
-                      class="w-full" />
+                    <DashboardTextEditor v-model="state.description" placeholder="Description détaillée du produit…" />
                   </UFormField>
                 </div>
               </UCard>
