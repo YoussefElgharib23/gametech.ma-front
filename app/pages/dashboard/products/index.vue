@@ -225,12 +225,12 @@ function getStatusLabel(status: string) {
         <UTable v-else :data="products" :columns="productColumns">
           <template #title-cell="{ row }">
             <div class="flex items-center gap-3">
-              <div class="h-10 w-10 shrink-0 overflow-hidden rounded border border-neutral-200 bg-neutral-100">
+              <div class="h-12 w-12 shrink-0 overflow-hidden rounded border border-neutral-200 bg-neutral-100 p-[2px]">
                 <img
                   v-if="row.original.images?.[0]"
                   :src="row.original.images[0]"
                   :alt="row.original.title"
-                  class="h-full w-full object-cover" />
+                  class="h-full w-full object-cover mix-blend-multiply" />
                 <div v-else class="flex h-full w-full items-center justify-center text-neutral-400">
                   <UIcon name="i-lucide-image" class="size-5" />
                 </div>

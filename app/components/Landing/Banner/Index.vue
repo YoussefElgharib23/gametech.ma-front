@@ -9,16 +9,28 @@ interface SliderApiResponse {
 const props = withDefaults(
   defineProps<{
     editable?: boolean;
+    /**
+     * Optional pre-fetched banner slider item.
+     */
+    bannerItem?: SliderApiResponse | null;
   }>(),
-  { editable: false },
+  { editable: false, bannerItem: null },
 );
 
 const { data: slidersData } = await useAPIFetch<SliderApiResponse[]>("/sliders");
 
 const slidersOverride = ref<SliderApiResponse[] | null>(null);
 
-const banner = computed(() => {
-  const list = slidersOverride.value ?? slidersData.value ?? [];
+const banner = computed<SliderApiResponse | null>(() => {
+  if (slidersOverride.value) {
+    return slidersOverride.value.find((s) => s.side === "banner") ?? null;
+  }
+
+  if (props.bannerItem) {
+    return props.bannerItem;
+  }
+
+  const list = slidersData.value ?? [];
   return list.find((s) => s.side === "banner") ?? null;
 });
 

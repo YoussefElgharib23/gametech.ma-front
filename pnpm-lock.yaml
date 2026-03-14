@@ -74,6 +74,9 @@ importers:
       '@tiptap/vue-3':
         specifier: ^3.20.1
         version: 3.20.1(@floating-ui/dom@1.7.5)(@tiptap/core@3.20.1(@tiptap/pm@3.20.1))(@tiptap/pm@3.20.1)(vue@3.5.28(typescript@5.9.3))
+      '@vueuse/core':
+        specifier: ^14.2.1
+        version: 14.2.1(vue@3.5.28(typescript@5.9.3))
       lucide-vue-next:
         specifier: ^0.577.0
         version: 0.577.0(vue@3.5.28(typescript@5.9.3))

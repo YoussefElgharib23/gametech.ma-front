@@ -2,9 +2,7 @@
   <UApp>
     <div class="bg-brand-accent-500 border-b border-brand-dark-100">
       <UContainer class="py-2">
-        <p class="text-brand-dark-500 text-xs text-center">
-          Built with Nuxt UI • © {{ new Date().getFullYear() }}
-        </p>
+        <p class="text-brand-dark-500 text-xs text-center">Built with Nuxt UI • © {{ new Date().getFullYear() }}</p>
       </UContainer>
     </div>
 
@@ -15,29 +13,12 @@
         </NuxtLink>
       </template>
 
-      <UInput
-        placeholder="Rechercher dans le catalogue"
-        trailing-icon="i-lucide-search"
-        :ui="{
-          base: 'h-10 w-[500px]',
-        }"
-      />
+      <LandingHeaderSearch />
 
       <template #right>
-        <UButton
-          icon="i-lucide-log-in"
-          label="Connexion"
-          color="neutral"
-          variant="ghost"
-          aria-label="Connexion"
-        />
+        <UButton icon="i-lucide-log-in" label="Connexion" color="neutral" variant="ghost" aria-label="Connexion" />
 
-        <UButton
-          icon="i-lucide-shopping-cart"
-          aria-label="Panier"
-          color="neutral"
-          variant="ghost"
-        />
+        <UButton icon="i-lucide-shopping-cart" aria-label="Panier" color="neutral" variant="ghost" />
       </template>
     </UHeader>
 
@@ -54,4 +35,3 @@
     <AppFooter />
   </UApp>
 </template>
-

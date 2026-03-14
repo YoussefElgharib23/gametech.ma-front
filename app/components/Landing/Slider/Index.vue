@@ -12,6 +12,11 @@ interface SliderItemState {
 
 const props = defineProps<{
   editable?: boolean;
+  /**
+   * Optional pre-fetched sliders for the homepage.
+   * When provided, they are used instead of fetching /sliders on mount.
+   */
+  sliderItems?: SliderApiResponse[] | null;
 }>();
 
 const items = ref<Record<SliderSideKey, SliderItemState>>({
@@ -54,17 +59,24 @@ const toast = useToast();
 
 interface SliderApiResponse {
   id: number;
-  side: SliderSideKey;
+  side: string;
   link: string | null;
   image: { id: number; url: string } | null;
 }
 
 const { data: slidersData } = await useAPIFetch<SliderApiResponse[]>("/sliders");
 
-watchEffect(() => {
-  if (!slidersData.value) return;
+const sourceSliders = computed<SliderApiResponse[]>(() => {
+  if (props.sliderItems && props.sliderItems.length) {
+    return props.sliderItems;
+  }
+  return slidersData.value ?? [];
+});
 
-  for (const slider of slidersData.value) {
+watchEffect(() => {
+  if (!sourceSliders.value.length) return;
+
+  for (const slider of sourceSliders.value) {
     const side = slider.side as SliderSideKey;
     if (!items.value[side]) continue;
     items.value[side].sliderId = slider.id;

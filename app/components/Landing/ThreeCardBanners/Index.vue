@@ -11,16 +11,26 @@ const CARD_SIDES = ["three-card-1", "three-card-2", "three-card-3"] as const;
 const props = withDefaults(
   defineProps<{
     editable?: boolean;
+    /**
+     * Optional pre-fetched sliders for this block.
+     */
+    sliderItems?: SliderApiResponse[] | null;
   }>(),
-  { editable: false },
+  { editable: false, sliderItems: null },
 );
 
 const { data: slidersData } = await useAPIFetch<SliderApiResponse[]>("/sliders");
 const slidersOverride = ref<SliderApiResponse[] | null>(null);
 
-const slidersList = computed(
-  () => slidersOverride.value ?? slidersData.value ?? [],
-);
+const slidersList = computed(() => {
+  if (slidersOverride.value) {
+    return slidersOverride.value;
+  }
+  if (props.sliderItems && props.sliderItems.length) {
+    return props.sliderItems;
+  }
+  return slidersData.value ?? [];
+});
 
 const cards = computed(() =>
   CARD_SIDES.map((side, index) => ({
