@@ -32,8 +32,6 @@ export default function <T>(
   const clientIp = useState("clientIp");
 
   const bearerToken = computed(() => {
-    return token.value;
-
     if (path.includes("/user")) {
       return token.value;
     }

@@ -205,9 +205,24 @@ useHead({
   ],
 });
 
-function onAddToCart() {
-  // Placeholder: will connect to API / cart later
+const { addItem } = useCart();
+const recentlyAdded = ref(false);
+let resetTimer: ReturnType<typeof setTimeout> | null = null;
+
+async function onAddToCart() {
+  if (!product.value.id) return;
+
+  await addItem(product.value.id, 1);
+  recentlyAdded.value = true;
+  if (resetTimer) clearTimeout(resetTimer);
+  resetTimer = setTimeout(() => {
+    recentlyAdded.value = false;
+  }, 3000);
 }
+
+onBeforeUnmount(() => {
+  if (resetTimer) clearTimeout(resetTimer);
+});
 </script>
 
 <template>
@@ -340,9 +355,11 @@ function onAddToCart() {
           </div>
 
           <UButton
-            label="Ajouter au panier"
-            icon="i-lucide-shopping-cart"
+            :label="recentlyAdded ? 'Ajoute au panier' : 'Ajouter au panier'"
+            :icon="recentlyAdded ? 'i-lucide-check' : 'i-lucide-shopping-cart'"
+            :variant="recentlyAdded ? 'soft' : 'solid'"
             class="h-10 w-full text-center justify-center"
+            :disabled="recentlyAdded"
             @click="onAddToCart" />
 
           <div
@@ -388,7 +405,8 @@ function onAddToCart() {
               :title="item.title"
               :current-price="item.currentPrice"
               :old-price="item.oldPrice"
-              :stock-status="item.stockStatus" />
+              :stock-status="item.stockStatus"
+              @add-to-cart="addItem(item.id, 1)" />
           </div>
         </UCarousel>
       </section>

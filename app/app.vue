@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 useHead({
   meta: [{ name: "viewport", content: "width=device-width, initial-scale=1" }],
   link: [{ rel: "icon", href: "/favicon.ico" }],
@@ -20,6 +20,16 @@ useSeoMeta({
   twitterImage: "https://ui.nuxt.com/assets/templates/nuxt/starter-light.png",
   twitterCard: "summary_large_image",
 });
+
+if (import.meta.client) {
+  const { authenticateVisitor } = useVisitor();
+  const { loadCart } = useCart();
+
+  onMounted(async () => {
+    await authenticateVisitor();
+    await loadCart();
+  });
+}
 </script>
 
 <template>

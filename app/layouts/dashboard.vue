@@ -48,6 +48,14 @@ const links = [
         open.value = false;
       },
     },
+    {
+      label: "Commandes",
+      icon: "i-lucide-shopping-cart",
+      to: "/dashboard/orders",
+      onSelect: () => {
+        open.value = false;
+      },
+    },
   ],
 ] satisfies NavigationMenuItem[][];
 

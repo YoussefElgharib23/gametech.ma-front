@@ -20,12 +20,26 @@ withDefaults(defineProps<Props>(), {
 });
 
 const emit = defineEmits<{ "add-to-cart": [] }>();
+const recentlyAdded = ref(false);
+let resetTimer: ReturnType<typeof setTimeout> | null = null;
 
 function onAddToCart(e: MouseEvent) {
   e.preventDefault();
   e.stopPropagation();
+  if (recentlyAdded.value) return;
+
   emit("add-to-cart");
+
+  recentlyAdded.value = true;
+  if (resetTimer) clearTimeout(resetTimer);
+  resetTimer = setTimeout(() => {
+    recentlyAdded.value = false;
+  }, 3000);
 }
+
+onBeforeUnmount(() => {
+  if (resetTimer) clearTimeout(resetTimer);
+});
 </script>
 
 <template>
@@ -90,9 +104,11 @@ function onAddToCart(e: MouseEvent) {
         </div>
         <UButton
           class="mt-3 w-full h-10 text-sm"
-          label="Ajouter au panier"
-          icon="i-lucide-shopping-cart"
+          :label="recentlyAdded ? 'Ajoute au panier' : 'Ajouter au panier'"
+          :icon="recentlyAdded ? 'i-lucide-check' : 'i-lucide-shopping-cart'"
           color="neutral"
+          :disabled="recentlyAdded"
+          :variant="recentlyAdded ? 'soft' : 'solid'"
           block
           @click="onAddToCart" />
       </div>

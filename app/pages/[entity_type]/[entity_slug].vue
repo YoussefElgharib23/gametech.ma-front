@@ -4,6 +4,7 @@ import type { Ref } from "vue";
 import { refDebounced } from "@vueuse/core";
 
 const route = useRoute();
+const { addItem } = useCart();
 
 interface ArchiveProduct {
   id: number;
@@ -520,7 +521,8 @@ useSeoMeta({
             :title="product.title"
             :current-price="product.priceLabel"
             :old-price="product.oldPriceLabel ?? undefined"
-            :stock-status="product.stockStatus" />
+            :stock-status="product.stockStatus"
+            @add-to-cart="addItem(product.id, 1)" />
         </div>
 
         <div v-else class="py-16 text-center text-sm text-neutral-500">Aucun produit ne correspond à ces filtres.</div>
