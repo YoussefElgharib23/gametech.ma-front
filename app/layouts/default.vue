@@ -2,13 +2,36 @@
 const cartOpen = ref(false);
 const { items, itemsCount, subtotalLabel, shippingLabel, grandTotalLabel, pending, incrementItem, decrementItem, removeItem } =
   useCart();
+
+const { storeSettings, load } = useStoreSettings();
+await load();
+
+const topContactLine = computed(() => {
+  const parts: string[] = [];
+
+  if (storeSettings.value.company_phone_1) {
+    parts.push(`Service Client : ${storeSettings.value.company_phone_1}`);
+  }
+
+  if (storeSettings.value.company_phone_2) {
+    parts.push(`Téléphone 2 : ${storeSettings.value.company_phone_2}`);
+  }
+
+  if (storeSettings.value.company_email) {
+    parts.push(`Email : ${storeSettings.value.company_email}`);
+  }
+
+  return parts.join(" • ");
+});
 </script>
 
 <template>
   <UApp>
     <div class="bg-brand-accent-500 border-b border-brand-dark-100">
       <UContainer class="py-2">
-        <p class="text-brand-dark-500 text-xs text-center">Built with Nuxt UI • © {{ new Date().getFullYear() }}</p>
+        <p class="text-brand-dark-500 text-xs text-center">
+          {{ topContactLine || `© ${new Date().getFullYear()}` }}
+        </p>
       </UContainer>
     </div>
 
@@ -22,7 +45,8 @@ const { items, itemsCount, subtotalLabel, shippingLabel, grandTotalLabel, pendin
       <LandingHeaderSearch />
 
       <template #right>
-        <UButton icon="i-lucide-log-in" label="Connexion" color="neutral" variant="ghost" aria-label="Connexion" />
+        <!-- TODO: Later implmenet customer login button -->
+        <!-- <UButton icon="i-lucide-log-in" label="Connexion" color="neutral" variant="ghost" aria-label="Connexion" /> -->
 
         <USlideover
           v-model:open="cartOpen"
@@ -137,6 +161,8 @@ const { items, itemsCount, subtotalLabel, shippingLabel, grandTotalLabel, pendin
         </USlideover>
       </template>
     </UHeader>
+
+    <WhatsAppFloat />
 
     <div class="bg-neutral-950 sticky top-0 z-50 ring ring-muted/20">
       <UContainer>

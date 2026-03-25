@@ -23,6 +23,8 @@ const schema = z.object({
   socials_tiktok: z.string().url("URL invalide.").optional().or(z.literal("")),
   socials_youtube: z.string().url("URL invalide.").optional().or(z.literal("")),
   socials_whatsapp: z.string().optional().or(z.literal("")),
+  flash_sales_enabled: z.boolean().optional(),
+  flash_sales_expires_at: z.string().optional().or(z.literal("")),
 });
 
 type FormState = z.infer<typeof schema>;
@@ -39,14 +41,38 @@ const state = reactive<FormState>({
   socials_tiktok: "",
   socials_youtube: "",
   socials_whatsapp: "",
+  flash_sales_enabled: true,
+  flash_sales_expires_at: "",
 });
 
 const { data, pending, refresh } = await useAPIFetch<SettingsResponse>("/dashboard/store-settings");
+
+function isoToDatetimeLocal(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const pad2 = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}T${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+}
+
+function datetimeLocalToIso(v: string): string | null {
+  const trimmed = (v ?? "").trim();
+  if (!trimmed) return null;
+  const d = new Date(trimmed);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toISOString();
+}
 
 function fromSettingsMap(settings: Record<string, unknown> | undefined): void {
   const s = settings ?? {};
 
   const getString = (key: string): string => (typeof s[key] === "string" ? (s[key] as string) : "");
+  const getBool = (key: string): boolean => {
+    const v = s[key];
+    if (typeof v === "boolean") return v;
+    if (v === 1 || v === "1") return true;
+    if (v === 0 || v === "0") return false;
+    return false;
+  };
 
   state.store_name = getString("store.name");
   state.company_name = getString("company.name");
@@ -59,6 +85,8 @@ function fromSettingsMap(settings: Record<string, unknown> | undefined): void {
   state.socials_tiktok = getString("socials.tiktok");
   state.socials_youtube = getString("socials.youtube");
   state.socials_whatsapp = getString("socials.whatsapp");
+  state.flash_sales_enabled = getBool("flash_sales.enabled");
+  state.flash_sales_expires_at = isoToDatetimeLocal(getString("flash_sales.expires_at"));
 }
 
 watch(
@@ -101,6 +129,8 @@ async function onSubmit() {
           "socials.tiktok": payload.socials_tiktok || null,
           "socials.youtube": payload.socials_youtube || null,
           "socials.whatsapp": payload.socials_whatsapp || null,
+          "flash_sales.enabled": payload.flash_sales_enabled ?? false,
+          "flash_sales.expires_at": datetimeLocalToIso(payload.flash_sales_expires_at) ?? null,
         },
       },
     });
@@ -220,6 +250,34 @@ async function onSubmit() {
             </UFormField>
             <UFormField label="WhatsApp (numéro ou lien)">
               <UInput v-model="state.socials_whatsapp" placeholder="+212 ... ou https://wa.me/..." />
+            </UFormField>
+          </div>
+        </UCard>
+
+        <UCard>
+          <template #header>
+            <div class="flex items-center gap-2">
+              <UIcon name="i-lucide-zap" class="h-4 w-4 text-primary-600" />
+              <h2 class="text-sm font-semibold text-neutral-900">Vente Flash</h2>
+            </div>
+          </template>
+
+          <div class="grid gap-4 sm:grid-cols-2">
+            <UFormField label="Activer la section">
+              <div class="flex items-center justify-between gap-3 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2">
+                <div class="min-w-0">
+                  <p class="text-sm font-medium text-neutral-900">Afficher “Vente Flash”</p>
+                  <p class="text-xs text-neutral-500">Désactivez pour masquer entièrement le bloc.</p>
+                </div>
+                <USwitch v-model="state.flash_sales_enabled" />
+              </div>
+            </UFormField>
+
+            <UFormField
+              label="Expire le"
+              description="Une fois la date dépassée, la section est automatiquement cachée."
+            >
+              <UInput v-model="state.flash_sales_expires_at" type="datetime-local" />
             </UFormField>
           </div>
         </UCard>

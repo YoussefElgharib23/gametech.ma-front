@@ -1,131 +1,97 @@
 <script setup lang="ts">
-const flashProducts = ref([
-  {
-    id: 1,
-    discount: "-400 MAD",
-    image: "",
-    specs: "8GB / 256GB",
-    stockStatus: "EN STOCK",
-    title: "Product Title 1",
-    currentPrice: "2 499 MAD",
-    oldPrice: "2 899 MAD",
-    promotionInfo: "En Promo",
+import { VENTE_FLASH_SECTION_SLUG } from "~/constants/catalogSections";
+
+interface FlashArchiveProduct {
+  id: number;
+  slug: string;
+  title: string;
+  image: string | null;
+  stockStatus: string;
+  priceLabel: string;
+  oldPriceLabel?: string | null;
+}
+
+interface FlashArchiveResponse {
+  products: FlashArchiveProduct[];
+  meta?: {
+    pagination?: {
+      total: number;
+      per_page: number;
+      current_page: number;
+      last_page: number;
+    };
+  };
+}
+
+const { storeSettings, load } = useStoreSettings();
+await load();
+
+const isEnabled = computed(() => storeSettings.value.flash_sales_enabled !== false);
+
+const isExpired = computed(() => {
+  const v = (storeSettings.value.flash_sales_expires_at ?? "").trim();
+  if (!v) return false;
+  const d = new Date(v);
+  if (Number.isNaN(d.getTime())) return false;
+  return Date.now() >= d.getTime();
+});
+
+const isVisible = computed(() => isEnabled.value && !isExpired.value);
+
+const countdown = computed(() => {
+  const v = (storeSettings.value.flash_sales_expires_at ?? "").trim();
+  if (!v) return null;
+
+  const end = new Date(v);
+  if (Number.isNaN(end.getTime())) return null;
+
+  const diffMs = end.getTime() - Date.now();
+  const totalSeconds = Math.max(0, Math.floor(diffMs / 1000));
+
+  const days = Math.floor(totalSeconds / 86400);
+  const hours = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  return { days, hours, minutes, seconds };
+});
+
+const flashArchivePath = computed(() => `/archive/section/${VENTE_FLASH_SECTION_SLUG}`);
+
+const {
+  data: flashArchive,
+  pending: flashPending,
+  refresh: refreshFlashArchive,
+} = await useAPIFetch<FlashArchiveResponse>(flashArchivePath, {
+  query: { page: 1, per_page: 9 },
+  immediate: false,
+  watch: false,
+});
+
+watch(
+  isVisible,
+  async (visible) => {
+    if (visible) {
+      await refreshFlashArchive();
+    }
   },
-  {
-    id: 2,
-    discount: "-400 MAD",
-    image: "",
-    specs: "8GB / 256GB",
-    stockStatus: "EN STOCK",
-    title: "Product Title 2",
-    currentPrice: "2 699 MAD",
-    oldPrice: "3 099 MAD",
-    promotionInfo: "En Promo",
-  },
-  {
-    id: 3,
-    discount: "-400 MAD",
-    image: "",
-    specs: "8GB / 256GB",
-    stockStatus: "EN STOCK",
-    title: "Product Title 3",
-    currentPrice: "2 599 MAD",
-    oldPrice: "2 999 MAD",
-    soldPercentage: "24",
-  },
-  {
-    id: 4,
-    discount: "-400 MAD",
-    image: "",
-    specs: "8GB / 256GB",
-    stockStatus: "EN STOCK",
-    title: "Product Title 4",
-    currentPrice: "2 799 MAD",
-    oldPrice: "3 199 MAD",
-    soldPercentage: "11",
-  },
-  {
-    id: 5,
-    discount: "-400 MAD",
-    image: "",
-    specs: "8GB / 256GB",
-    stockStatus: "EN STOCK",
-    title: "Product Title 5",
-    currentPrice: "3 499 MAD",
-    oldPrice: "3 899 MAD",
-    soldPercentage: "6",
-  },
-  {
-    id: 6,
-    discount: "-400 MAD",
-    image: "",
-    specs: "8GB / 256GB",
-    stockStatus: "EN STOCK",
-    title: "Product Title 6",
-    currentPrice: "3 549 MAD",
-    oldPrice: "3 949 MAD",
-    promotionInfo: "En Promo",
-  },
-  {
-    id: 7,
-    discount: "-700 MAD",
-    image: "",
-    specs: "16GB/512GB",
-    stockStatus: "EN STOCK",
-    title: "Product Title 7",
-    currentPrice: "5 490 MAD",
-    oldPrice: "6 190 MAD",
-    promotionInfo: "En Promo",
-  },
-  {
-    id: 8,
-    discount: "-700 MAD",
-    image: "",
-    specs: "16GB/512GB",
-    stockStatus: "EN STOCK",
-    title: "Product Title 8",
-    currentPrice: "5 590 MAD",
-    oldPrice: "6 290 MAD",
-    promotionInfo: "En Promo",
-  },
-  {
-    id: 9,
-    discount: "-600 MAD",
-    image: "",
-    specs: "16GB/512GB",
-    stockStatus: "EN STOCK",
-    title: "Product Title 9",
-    currentPrice: "5 690 MAD",
-    oldPrice: "6 290 MAD",
-    promotionInfo: "En Promo",
-  },
-  {
-    id: 10,
-    discount: "-600 MAD",
-    image: "",
-    specs: "16GB/512GB",
-    stockStatus: "EN STOCK",
-    title: "Product Title 10",
-    currentPrice: "6 390 MAD",
-    oldPrice: "6 990 MAD",
-    promotionInfo: "En Promo",
-  },
-  {
-    id: 11,
-    discount: "-700 MAD",
-    image: "",
-    specs: "16GB/512GB",
-    stockStatus: "EN STOCK",
-    title: "Product Title 11",
-    currentPrice: "6 890 MAD",
-    oldPrice: "7 590 MAD",
-    promotionInfo: "En Promo",
-  },
-]);
+  { immediate: true },
+);
+
+const flashProductsList = computed(() => {
+  if (!isVisible.value) return [];
+  return flashArchive.value?.products ?? [];
+});
+
+const flashTotal = computed(() => flashArchive.value?.meta?.pagination?.total ?? 0);
+
+const showMoreCard = computed(() => flashProductsList.value.length > 0 && flashTotal.value > flashProductsList.value.length);
+
+const sectionListingPath = `/section/${VENTE_FLASH_SECTION_SLUG}`;
 </script>
 
 <template>
-  <section class="flash-section relative overflow-hidden bg-brand-dark-950">
+  <section v-if="isVisible" class="flash-section relative overflow-hidden bg-brand-dark-950">
     <!-- Background effects -->
     <div class="flash-grid absolute inset-0 opacity-[0.03]" />
     <div class="flash-glow-left" />
@@ -169,24 +135,72 @@ const flashProducts = ref([
 
         <!-- Right: countdown -->
         <div class="flex flex-col items-center md:items-end gap-2">
-          <span class="text-[11px] font-semibold text-brand-dark-400 uppercase tracking-widest">Se termine dans</span>
+          <span v-if="countdown" class="text-[11px] font-semibold text-brand-dark-400 uppercase tracking-widest">
+            Se termine dans
+          </span>
           <div class="flash-countdown-wrapper">
-            <CountdownTimer :days="2" :hours="5" :minutes="12" :seconds="49" />
+            <CountdownTimer
+              v-if="countdown"
+              :key="storeSettings.flash_sales_expires_at"
+              :days="countdown.days"
+              :hours="countdown.hours"
+              :minutes="countdown.minutes"
+              :seconds="countdown.seconds" />
+            <span v-else class="text-xs text-brand-dark-300">Offre en cours</span>
           </div>
         </div>
       </div>
 
-      <!-- Products grid -->
+      <!-- Products grid (same catalog section as /section/vente-flash) -->
       <div class="flash-products grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
-        <ProductCard
-          v-for="product in flashProducts.slice(0, 9)"
-          :key="product.id"
-          :image="product.image"
-          :stock-status="product.stockStatus"
-          :title="product.title"
-          :current-price="product.currentPrice"
-          :old-price="product.oldPrice" />
-        <ProductCardMore />
+        <div v-if="flashPending" class="col-span-full py-10 text-center text-sm text-brand-dark-300">Chargement des offres…</div>
+        <div v-else-if="!flashProductsList.length" class="col-span-full py-10 text-center text-sm text-brand-dark-300">
+          Aucun produit en vente flash pour le moment. Ajoutez la section «&nbsp;Vente flash&nbsp;» à vos produits ou visitez
+          <NuxtLink :to="sectionListingPath" class="text-brand-accent-400 underline underline-offset-2">la page dédiée</NuxtLink>
+          .
+        </div>
+        <template v-else>
+          <div v-for="(product, index) in flashProductsList" :key="product.id" class="relative min-h-0">
+            <ProductCard
+              :to="`/products/${product.slug}`"
+              :image="product.image ?? ''"
+              :stock-status="product.stockStatus"
+              :title="product.title"
+              :current-price="product.priceLabel"
+              :old-price="product.oldPriceLabel || undefined" />
+          </div>
+          <div v-if="showMoreCard && flashProductsList[flashProductsList.length - 1] !== undefined" class="relative">
+            <ProductCard
+              :to="`/products/${flashProductsList[flashProductsList.length - 1].slug}`"
+              :image="flashProductsList[flashProductsList.length - 1].image ?? ''"
+              :stock-status="flashProductsList[flashProductsList.length - 1].stockStatus"
+              :title="flashProductsList[flashProductsList.length - 1].title"
+              :current-price="flashProductsList[flashProductsList.length - 1].priceLabel"
+              :old-price="flashProductsList[flashProductsList.length - 1].oldPriceLabel || undefined" />
+            <NuxtLink
+              :to="sectionListingPath"
+              aria-label="Voir tous les produits en vente flash"
+              class="group absolute inset-0 z-20 flex items-center justify-center rounded-xl bg-brand-dark-950/78 backdrop-blur-[3px] ring-1 ring-white/20 transition-colors duration-200 hover:bg-brand-dark-950/88 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-accent-500 focus-visible:ring-offset-2 focus-visible:ring-offset-brand-dark-950">
+              <div class="pointer-events-none text-center max-w-[180px] px-3">
+                <p class="text-sm font-semibold text-black leading-tight">
+                  Découvrir plus
+                  <span class="whitespace-nowrap">d’offres</span>
+                </p>
+                <p class="mt-1 text-[11px] text-brand-dark-500 leading-snug">Voir toute la vente flash.</p>
+                <div class="relative mt-2 h-6 w-6 mx-auto overflow-hidden">
+                  <div
+                    class="absolute inset-0 flex items-center justify-center transition-all duration-300 group-hover:translate-x-3 group-hover:opacity-0">
+                    <UIcon name="i-lucide-arrow-right" class="text-brand-accent-400 text-2xl" />
+                  </div>
+                  <div
+                    class="absolute inset-0 flex items-center justify-center transition-all duration-300 -translate-x-3 opacity-0 group-hover:translate-x-0 group-hover:opacity-100">
+                    <UIcon name="i-lucide-arrow-right" class="text-brand-accent-400 text-2xl" />
+                  </div>
+                </div>
+              </div>
+            </NuxtLink>
+          </div>
+        </template>
       </div>
     </UContainer>
 
@@ -314,19 +328,5 @@ const flashProducts = ref([
 
 .flash-products :deep(a .text-primary-700) {
   color: var(--color-brand-accent-400);
-}
-
-/* "Voir plus" card */
-.flash-products :deep(> div:last-child) {
-  background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(255, 255, 255, 0.08);
-}
-
-.flash-products :deep(> div:last-child .text-brand-dark-950) {
-  color: #f0f1f4;
-}
-
-.flash-products :deep(> div:last-child .bg-neutral-50) {
-  background: transparent;
 }
 </style>

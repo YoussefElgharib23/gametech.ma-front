@@ -1,76 +1,73 @@
 <script setup lang="ts">
+import type { BrandSummary } from "~/components/Landing/Brands/Index.vue";
 import type { CategorySummary } from "~/components/Landing/Categories/Index.vue";
+import type { LandingProductsBySection } from "~/components/Landing/Products/Index.vue";
+import type { ProductsPerCategoryBlock } from "~/components/Landing/ProductsPerCategory/Index.vue";
 
 definePageMeta({
   layout: "dashboard",
 });
 
-/** Local preview assets until dashboard loads home payload from the API */
-const demoCategories: CategorySummary[] = [
-  {
-    id: 1,
-    name: "PÉRIPHÉRIQUE PC",
-    slug: "peripherique-pc",
-    image: "/images/categories/peripherique-pc.jpg",
-  },
-  {
-    id: 2,
-    name: "CARTE GRAPHIQUE",
-    slug: "carte-graphique",
-    image: "/images/categories/carte-graphique.jpg",
-  },
-  {
-    id: 3,
-    name: "CLAVIER",
-    slug: "clavier",
-    image: "/images/categories/clavier.jpg",
-  },
-  {
-    id: 4,
-    name: "SOURIS",
-    slug: "souris",
-    image: "/images/categories/souris.jpg",
-  },
-  {
-    id: 5,
-    name: "CASQUE",
-    slug: "casque",
-    image: "/images/categories/casque.jpg",
-  },
-  {
-    id: 6,
-    name: "PROCESSEUR",
-    slug: "processeur",
-    image: "/images/categories/processeur.jpg",
-  },
-];
+interface SliderImage {
+  id: number;
+  url: string;
+  path?: string;
+  name?: string;
+}
+
+interface SliderItem {
+  id: number;
+  side: string;
+  link: string | null;
+  image: SliderImage | null;
+}
+
+interface HomeLandingPayload {
+  sliders: {
+    main: SliderItem[];
+    three_card: SliderItem[];
+    banner: SliderItem | null;
+  };
+  categories: CategorySummary[];
+  brands: BrandSummary[];
+  landing_products: LandingProductsBySection;
+  products_per_category: ProductsPerCategoryBlock[];
+}
+
+const { data: landingData } = await useAPIFetch<HomeLandingPayload>("/home");
+
+const emptyLandingProducts: LandingProductsBySection = {
+  selections: [],
+  "new-arrival": [],
+  "best-seller": [],
+};
 </script>
 
 <template>
   <div class="space-y-0 flex-1 w-full overflow-auto">
     <!-- Slider – editable in dashboard -->
-    <LandingSlider :editable="true" />
+    <LandingSlider :editable="true" :slider-items="landingData?.sliders.main ?? []" />
 
     <!-- Categories carousel -->
-    <LandingCategories :categories="demoCategories" />
+    <LandingCategories :categories="landingData?.categories ?? []" />
 
     <!-- Flash sales -->
     <LandingFlashSales />
 
     <!-- Products carousel -->
-    <LandingProducts />
+    <LandingProducts :landing-products="landingData?.landing_products ?? emptyLandingProducts" />
 
     <!-- Landing banner -->
-    <LandingBanner :editable="true" />
+    <LandingBanner :editable="true" :banner-item="landingData?.sliders.banner ?? null" />
 
     <!-- Products per category -->
-    <LandingProductsPerCategory />
+    <LandingProductsPerCategory :blocks="landingData?.products_per_category ?? []" />
 
     <!-- Three card banners – editable in dashboard -->
-    <LandingThreeCardBanners :editable="true" />
+    <LandingThreeCardBanners :editable="true" :slider-items="landingData?.sliders.three_card ?? []" />
 
     <!-- Our brands -->
-    <LandingBrands />
+    <LandingBrands :brands="landingData?.brands ?? []" />
 
     <!-- Trust section -->
     <LandingTrustSection />
