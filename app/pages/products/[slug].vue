@@ -5,6 +5,7 @@ const slug = computed(() => String(route.params.slug ?? ""));
 interface ProductBrand {
   name: string;
   image?: string;
+  slug: string;
 }
 
 interface ProductCategory {
@@ -209,8 +210,23 @@ const { addItem } = useCart();
 const recentlyAdded = ref(false);
 let resetTimer: ReturnType<typeof setTimeout> | null = null;
 
+const normalizedStockStatus = computed(() => (product.value.stockStatus ?? "").trim().toLowerCase());
+const isOutOfStock = computed(() => normalizedStockStatus.value.includes("rupture"));
+const isPreorder = computed(() => normalizedStockStatus.value.includes("pré") || normalizedStockStatus.value.includes("pre"));
+
+const stockBadgeClass = computed(() => {
+  if (isOutOfStock.value) {
+    return "bg-red-100 text-red-800";
+  }
+  if (isPreorder.value) {
+    return "bg-amber-100 text-amber-900";
+  }
+  return "bg-brand-accent-500 text-brand-accent-950";
+});
+
 async function onAddToCart() {
   if (!product.value.id) return;
+  if (isOutOfStock.value) return;
 
   await addItem(product.value.id, 1);
   recentlyAdded.value = true;
@@ -322,7 +338,7 @@ onBeforeUnmount(() => {
         <!-- Product info -->
         <div class="flex flex-col">
           <!-- Brand -->
-          <div v-if="product.brand" class="flex items-center gap-2 mb-3">
+          <NuxtLink v-if="product.brand" :to="`/brands/${product.brand.slug}`" class="flex items-center gap-2 mb-3">
             <div class="ring ring-accented rounded-md overflow-hidden">
               <NuxtImg
                 v-if="product.brand.image"
@@ -331,15 +347,14 @@ onBeforeUnmount(() => {
                 class="size-8 object-contain" />
             </div>
             <span class="font-medium text-neutral-500">{{ product.brand.name }}</span>
-          </div>
+          </NuxtLink>
 
           <h1 class="text-2xl sm:text-3xl font-bold text-neutral-900 tracking-tight mb-3">
             {{ product.title }}
           </h1>
 
           <div class="flex flex-wrap items-center gap-3 mb-4">
-            <span
-              class="rounded-full bg-brand-accent-500 text-brand-accent-950 px-2.5 py-1 text-xs font-semibold uppercase tracking-wide">
+            <span class="rounded-full px-2.5 py-1 text-xs font-semibold uppercase tracking-wide" :class="stockBadgeClass">
               {{ product.stockStatus }}
             </span>
             <span class="text-sm text-neutral-500">Réf. {{ product.sku }}</span>
@@ -355,11 +370,11 @@ onBeforeUnmount(() => {
           </div>
 
           <UButton
-            :label="recentlyAdded ? 'Ajoute au panier' : 'Ajouter au panier'"
-            :icon="recentlyAdded ? 'i-lucide-check' : 'i-lucide-shopping-cart'"
-            :variant="recentlyAdded ? 'soft' : 'solid'"
+            :label="isOutOfStock ? 'Indisponible' : recentlyAdded ? 'Ajouté au panier' : 'Ajouter au panier'"
+            :icon="isOutOfStock ? 'i-lucide-ban' : recentlyAdded ? 'i-lucide-check' : 'i-lucide-shopping-cart'"
+            :variant="isOutOfStock ? 'soft' : recentlyAdded ? 'soft' : 'solid'"
             class="h-10 w-full text-center justify-center"
-            :disabled="recentlyAdded"
+            :disabled="recentlyAdded || isOutOfStock"
             @click="onAddToCart" />
 
           <div

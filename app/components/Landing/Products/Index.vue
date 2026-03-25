@@ -26,16 +26,9 @@ const props = defineProps<{
   landingProducts?: LandingProductsBySection;
 }>();
 
-const demoImage =
-  "https://pcgameragadir.ma/storage/uploads/products/TlF3g1GFIpyjcKALFS0rQz13SnqAaCVMfRJXTxjs_small.jpg";
+const demoImage = "https://pcgameragadir.ma/storage/uploads/products/TlF3g1GFIpyjcKALFS0rQz13SnqAaCVMfRJXTxjs_small.jpg";
 
-function demoCard(
-  id: number,
-  slug: string,
-  title: string,
-  currentPrice: string,
-  oldPrice?: string,
-): LandingProductCard {
+function demoCard(id: number, slug: string, title: string, currentPrice: string, oldPrice?: string): LandingProductCard {
   return {
     id,
     slug,
@@ -93,6 +86,10 @@ const currentProducts = computed(() => {
   }
 });
 
+const hasAnyProducts = computed(
+  () => data.value.selections.length > 0 || data.value["new-arrival"].length > 0 || data.value["best-seller"].length > 0,
+);
+
 const firstRowProducts = computed(() => currentProducts.value.slice(0, 6));
 
 const secondRowProducts = computed(() => currentProducts.value.slice(6, 12));
@@ -112,7 +109,7 @@ const scrollNext = () => {
 </script>
 
 <template>
-  <UContainer v-if="currentProducts.length" class="py-8">
+  <UContainer v-if="hasAnyProducts" class="py-8">
     <!-- Tab Navigation -->
     <div class="flex items-center justify-center mb-6">
       <UButton
@@ -122,22 +119,20 @@ const scrollNext = () => {
         size="lg"
         aria-label="Précédent"
         class="rounded-full"
-        @click="scrollPrev"
-      />
+        @click="scrollPrev" />
       <div class="max-w-2xl mx-auto">
         <UTabs
           variant="pill"
           class="w-full"
-          size="xl"
           :content="false"
           :items="tabs"
           v-model="activeTab"
           :ui="{
             root: 'flex items-center justify-center gap-1',
-            list: 'flex items-center gap-2',
-            trigger: 'uppercase font-semibold text-sm',
-          }"
-        />
+            list: 'flex items-center gap-2 rounded-full border border-muted shadow-xs',
+            trigger: 'uppercase font-semibold text-sm py-2.5 text-sm',
+            indicator: 'rounded-full',
+          }" />
       </div>
       <UButton
         icon="i-lucide-chevron-right"
@@ -146,12 +141,13 @@ const scrollNext = () => {
         size="lg"
         aria-label="Suivant"
         class="rounded-full"
-        @click="scrollNext"
-      />
+        @click="scrollNext" />
     </div>
 
+    <div v-if="!currentProducts.length" class="py-10 text-center text-neutral-500">Aucun produit dans cette sélection.</div>
+
     <!-- First Row Carousel -->
-    <div class="mb-4">
+    <div v-if="firstRowProducts.length" class="mb-4">
       <UCarousel
         ref="carouselRow1"
         v-slot="{ item }"
@@ -162,8 +158,7 @@ const scrollNext = () => {
           item: 'basis-1/5 shrink-0',
           container: 'gap-1',
           viewport: 'overflow-hidden',
-        }"
-      >
+        }">
         <div class="py-2">
           <ProductCard
             :to="`/products/${item.slug}`"
@@ -171,8 +166,7 @@ const scrollNext = () => {
             :stock-status="item.stockStatus"
             :title="item.title"
             :current-price="item.currentPrice"
-            :old-price="item.oldPrice ?? ''"
-          />
+            :old-price="item.oldPrice ?? ''" />
         </div>
       </UCarousel>
     </div>
@@ -189,8 +183,7 @@ const scrollNext = () => {
           item: 'basis-1/5 shrink-0',
           container: 'gap-1',
           viewport: 'overflow-hidden',
-        }"
-      >
+        }">
         <div class="py-2">
           <ProductCard
             :to="`/products/${item.slug}`"
@@ -198,8 +191,7 @@ const scrollNext = () => {
             :stock-status="item.stockStatus"
             :title="item.title"
             :current-price="item.currentPrice"
-            :old-price="item.oldPrice ?? ''"
-          />
+            :old-price="item.oldPrice ?? ''" />
         </div>
       </UCarousel>
     </div>

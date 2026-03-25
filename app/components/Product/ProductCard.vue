@@ -10,7 +10,7 @@ interface Props {
   oldPrice?: string;
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   to: "#",
   image: "",
   brandImage: "",
@@ -23,10 +23,25 @@ const emit = defineEmits<{ "add-to-cart": [] }>();
 const recentlyAdded = ref(false);
 let resetTimer: ReturnType<typeof setTimeout> | null = null;
 
+const normalizedStockStatus = computed(() => (props.stockStatus ?? "").trim().toLowerCase());
+
+const isOutOfStock = computed(() => normalizedStockStatus.value.includes("rupture"));
+const isPreorder = computed(() => normalizedStockStatus.value.includes("pré") || normalizedStockStatus.value.includes("pre"));
+
+const stockBadgeClass = computed(() => {
+  if (isOutOfStock.value) {
+    return "bg-red-100 text-red-800";
+  }
+  if (isPreorder.value) {
+    return "bg-amber-100 text-amber-900";
+  }
+  return "bg-brand-accent-500 text-brand-accent-950";
+});
+
 function onAddToCart(e: MouseEvent) {
   e.preventDefault();
   e.stopPropagation();
-  if (recentlyAdded.value) return;
+  if (recentlyAdded.value || isOutOfStock.value) return;
 
   emit("add-to-cart");
 
@@ -66,7 +81,8 @@ onBeforeUnmount(() => {
 
         <!-- Stock: bottom-left pill on image -->
         <span
-          class="absolute bottom-2 left-2 rounded-full bg-brand-accent-500 text-brand-accent-950 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide shadow-sm">
+          class="absolute bottom-2 left-2 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wide shadow-xs"
+          :class="stockBadgeClass">
           {{ stockStatus }}
         </span>
       </div>
@@ -104,11 +120,11 @@ onBeforeUnmount(() => {
         </div>
         <UButton
           class="mt-3 w-full h-10 text-sm"
-          :label="recentlyAdded ? 'Ajoute au panier' : 'Ajouter au panier'"
-          :icon="recentlyAdded ? 'i-lucide-check' : 'i-lucide-shopping-cart'"
+          :label="isOutOfStock ? 'Indisponible' : recentlyAdded ? 'Ajouté au panier' : 'Ajouter au panier'"
+          :icon="isOutOfStock ? 'i-lucide-ban' : recentlyAdded ? 'i-lucide-check' : 'i-lucide-shopping-cart'"
           color="neutral"
-          :disabled="recentlyAdded"
-          :variant="recentlyAdded ? 'soft' : 'solid'"
+          :disabled="recentlyAdded || isOutOfStock"
+          :variant="isOutOfStock ? 'soft' : recentlyAdded ? 'soft' : 'solid'"
           block
           @click="onAddToCart" />
       </div>

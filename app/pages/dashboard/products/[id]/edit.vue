@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import * as z from "zod";
+import { CATALOG_SECTIONS, CATALOG_SECTION_SLUGS, type CatalogSectionSlug } from "~/constants/catalogSections";
+import { CONFIGURATOR_CATEGORIES, type ConfiguratorCategory } from "~/constants/configuratorCategories";
 
 definePageMeta({
   layout: "dashboard",
@@ -47,6 +49,8 @@ const schema = z.object({
   is_featured: z.boolean(),
   position: z.number(),
   section: z.enum(["selections", "new-arrival", "best-seller"]).optional(),
+  configurator_category: z.enum(CONFIGURATOR_CATEGORIES).optional(),
+  catalog_sections: z.array(z.enum(CATALOG_SECTION_SLUGS)).optional(),
 });
 
 type Schema = z.output<typeof schema>;
@@ -67,6 +71,8 @@ const state = reactive<Partial<z.infer<typeof schema>>>({
   is_featured: false,
   position: 0,
   section: undefined,
+  configurator_category: undefined,
+  catalog_sections: [],
 });
 
 const formRef = useTemplateRef<{
@@ -102,9 +108,12 @@ watch(
     state.is_featured = p.is_featured || false;
     state.position = p.position ?? 0;
     state.section =
-      p.section === "selections" || p.section === "new-arrival" || p.section === "best-seller"
-        ? p.section
-        : undefined;
+      p.section === "selections" || p.section === "new-arrival" || p.section === "best-seller" ? p.section : undefined;
+    state.configurator_category =
+      typeof p.configurator_category === "string" && p.configurator_category.length ? p.configurator_category : undefined;
+    state.catalog_sections = Array.isArray(p.catalog_sections)
+      ? (p.catalog_sections.filter((s: unknown) => typeof s === "string") as CatalogSectionSlug[])
+      : [];
     if (p.images?.length) {
       uploadedImages.value = p.images.map((url: string) => ({ id: 0, url }));
     }
@@ -169,6 +178,16 @@ const landingSectionOptions: { label: string; value: "selections" | "new-arrival
   { label: "Nouvel arrivage", value: "new-arrival" },
   { label: "Best seller", value: "best-seller" },
 ];
+
+const configuratorCategoryOptions: { label: string; value: ConfiguratorCategory | undefined }[] = [
+  { label: "Aucune", value: undefined },
+  ...CONFIGURATOR_CATEGORIES.map((c) => ({ label: c.slice(0, 1).toUpperCase() + c.slice(1).toLowerCase(), value: c })),
+];
+
+const catalogSectionOptions: { label: string; value: CatalogSectionSlug }[] = CATALOG_SECTIONS.map((s) => ({
+  label: s.label,
+  value: s.slug,
+}));
 
 const statusDotClass = computed(() => {
   switch (state.status) {
@@ -261,6 +280,8 @@ async function onSubmit(event: { data: Schema }) {
         is_featured: data.is_featured,
         position: data.position,
         section: data.section === undefined ? null : data.section,
+        configurator_category: data.configurator_category === undefined ? null : data.configurator_category,
+        catalog_sections: data.catalog_sections?.length ? data.catalog_sections : null,
         upload_ids: uploadedImages.value.map((img) => img.id).filter((id) => id > 0),
       },
     });
@@ -303,7 +324,7 @@ function submitForm() {
       </div>
 
       <UForm ref="productForm" :schema="schema" :state="state" class="w-full" @submit="onSubmit">
-        <div class="flex gap-6 mx-auto items-start">
+        <div class="flex gap-6 items-start">
           <!-- ── LEFT COLUMN ── -->
           <div class="flex-1 min-w-0 space-y-4">
             <!-- Title & Description -->
@@ -537,6 +558,35 @@ function submitForm() {
                   <USelect
                     v-model="state.section"
                     :items="landingSectionOptions"
+                    placeholder="Aucune"
+                    size="md"
+                    class="w-full"
+                    label-key="label"
+                    value-key="value" />
+                </UFormField>
+                <UFormField
+                  label="Catégorie configurateur"
+                  name="configurator_category"
+                  help="Utilisée pour le PC Config Builder (filtrage des composants)."
+                  class="w-full">
+                  <USelectMenu
+                    v-model="state.configurator_category"
+                    :items="configuratorCategoryOptions"
+                    placeholder="Aucune"
+                    size="md"
+                    class="w-full"
+                    label-key="label"
+                    value-key="value" />
+                </UFormField>
+                <UFormField
+                  label="Sections catalogue"
+                  name="catalog_sections"
+                  help="Affiche ce produit dans les pages: Nouvel arrivage, Meilleures ventes, Promotion."
+                  class="w-full">
+                  <USelectMenu
+                    v-model="state.catalog_sections"
+                    :items="catalogSectionOptions"
+                    multiple
                     placeholder="Aucune"
                     size="md"
                     class="w-full"

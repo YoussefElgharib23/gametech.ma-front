@@ -138,7 +138,7 @@ const { items, itemsCount, subtotalLabel, shippingLabel, grandTotalLabel, pendin
       </template>
     </UHeader>
 
-    <div class="bg-neutral-950 sticky top-0 z-50">
+    <div class="bg-neutral-950 sticky top-0 z-50 ring ring-muted/20">
       <UContainer>
         <LandingHeaderNav />
       </UContainer>

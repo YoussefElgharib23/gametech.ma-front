@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import * as z from "zod";
 import type { FormSubmitEvent } from "@nuxt/ui";
+import { CATALOG_SECTIONS, CATALOG_SECTION_SLUGS, type CatalogSectionSlug } from "~/constants/catalogSections";
+import { CONFIGURATOR_CATEGORIES, type ConfiguratorCategory } from "~/constants/configuratorCategories";
 
 definePageMeta({
   layout: "dashboard",
@@ -45,6 +47,8 @@ const schema = z.object({
   is_featured: z.boolean(),
   position: z.number(),
   section: z.enum(["selections", "new-arrival", "best-seller"]).optional(),
+  configurator_category: z.enum(CONFIGURATOR_CATEGORIES).optional(),
+  catalog_sections: z.array(z.enum(CATALOG_SECTION_SLUGS)).optional(),
 });
 
 type Schema = z.output<typeof schema>;
@@ -65,6 +69,8 @@ const state = reactive<Partial<z.infer<typeof schema>>>({
   is_featured: false,
   position: 0,
   section: undefined,
+  configurator_category: undefined,
+  catalog_sections: [],
 });
 
 const formRef = useTemplateRef<{
@@ -125,6 +131,16 @@ const landingSectionOptions: { label: string; value: "selections" | "new-arrival
   { label: "Nouvel arrivage", value: "new-arrival" },
   { label: "Best seller", value: "best-seller" },
 ];
+
+const configuratorCategoryOptions: { label: string; value: ConfiguratorCategory | undefined }[] = [
+  { label: "Aucune", value: undefined },
+  ...CONFIGURATOR_CATEGORIES.map((c) => ({ label: c.slice(0, 1).toUpperCase() + c.slice(1).toLowerCase(), value: c })),
+];
+
+const catalogSectionOptions: { label: string; value: CatalogSectionSlug }[] = CATALOG_SECTIONS.map((s) => ({
+  label: s.label,
+  value: s.slug,
+}));
 
 const statusDotClass = computed(() => {
   switch (state.status) {
@@ -217,6 +233,8 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
         is_featured: data.is_featured,
         position: data.position,
         section: data.section === undefined ? null : data.section,
+        configurator_category: data.configurator_category === undefined ? null : data.configurator_category,
+        catalog_sections: data.catalog_sections?.length ? data.catalog_sections : null,
         upload_ids: uploadedImages.value.map((img) => img.id).filter((id) => id > 0),
       },
     });
@@ -247,14 +265,6 @@ function submitForm() {
   <UDashboardPanel>
     <template #header>
       <UDashboardNavbar title="Nouveau produit">
-        <template #left>
-          <UButton
-            icon="i-lucide-arrow-left"
-            color="neutral"
-            variant="ghost"
-            to="/dashboard/products"
-            aria-label="Retour aux produits" />
-        </template>
         <template #right>
           <div class="flex items-center gap-2">
             <UButton color="neutral" variant="outline" label="Ignorer" to="/dashboard/products" />
@@ -265,258 +275,287 @@ function submitForm() {
     </template>
 
     <template #body>
-      <div class="p-6 overflow-auto">
-        <UForm ref="productForm" :schema="schema" :state="state" class="w-full" @submit="onSubmit">
-          <div class="flex gap-6 max-w-[1200px] mx-auto items-start">
-            <!-- ── LEFT COLUMN ── -->
-            <div class="flex-1 min-w-0 space-y-4">
-              <!-- Title & Description -->
-              <UCard>
-                <div class="space-y-4">
-                  <UFormField label="Titre" name="title" required class="w-full">
-                    <UInput v-model="state.title" placeholder="Ex. AMD Ryzen 9 5950X" size="lg" class="w-full" autofocus />
-                  </UFormField>
-                  <UFormField label="Description courte" name="short_description" class="w-full">
-                    <UTextarea
-                      v-model="state.short_description"
-                      placeholder="Résumé affiché sur les cartes produit et en SEO…"
-                      :rows="2"
-                      size="md"
-                      class="w-full" />
-                  </UFormField>
-                  <UFormField label="Description" name="description" class="w-full">
-                    <DashboardTextEditor v-model="state.description" placeholder="Description détaillée du produit…" />
-                  </UFormField>
+      <div class="mb-2">
+        <NuxtLink to="/dashboard/products" class="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
+          <UIcon name="i-heroicons-arrow-left" class="h-4 w-4" />
+          Retour aux produits
+        </NuxtLink>
+      </div>
+
+      <UForm ref="productForm" :schema="schema" :state="state" class="w-full" @submit="onSubmit">
+        <div class="flex gap-6 items-start">
+          <!-- ── LEFT COLUMN ── -->
+          <div class="flex-1 min-w-0 space-y-4">
+            <!-- Title & Description -->
+            <UCard>
+              <div class="space-y-4">
+                <UFormField label="Titre" name="title" required class="w-full">
+                  <UInput v-model="state.title" placeholder="Ex. AMD Ryzen 9 5950X" size="lg" class="w-full" autofocus />
+                </UFormField>
+                <UFormField label="Description courte" name="short_description" class="w-full">
+                  <UTextarea
+                    v-model="state.short_description"
+                    placeholder="Résumé affiché sur les cartes produit et en SEO…"
+                    :rows="2"
+                    size="md"
+                    class="w-full" />
+                </UFormField>
+                <UFormField label="Description" name="description" class="w-full">
+                  <DashboardTextEditor v-model="state.description" placeholder="Description détaillée du produit…" />
+                </UFormField>
+              </div>
+            </UCard>
+
+            <!-- Media -->
+            <UCard>
+              <template #header>
+                <h3 class="text-sm font-semibold text-neutral-800">Médias</h3>
+              </template>
+
+              <div
+                v-if="!uploadedImages.length"
+                class="flex flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-neutral-200 bg-neutral-50 py-12 cursor-pointer transition hover:border-neutral-300 hover:bg-neutral-100"
+                @click="triggerImageInput">
+                <UIcon name="i-lucide-image-plus" class="size-10 text-neutral-400" />
+                <div class="text-center">
+                  <p class="text-sm font-medium text-neutral-700">Ajouter des images</p>
+                  <p class="text-xs text-neutral-500 mt-0.5">Cliquez ou déposez vos fichiers ici</p>
                 </div>
-              </UCard>
+              </div>
 
-              <!-- Media -->
-              <UCard>
-                <template #header>
-                  <h3 class="text-sm font-semibold text-neutral-800">Médias</h3>
-                </template>
+              <div v-else class="space-y-3">
+                <div class="relative overflow-hidden rounded-lg border border-neutral-200 bg-neutral-100 aspect-video group">
+                  <img :src="uploadedImages[0]?.url" alt="Image principale" class="h-full w-full object-contain" />
+                  <div
+                    class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                    <UButton icon="i-lucide-trash-2" color="error" variant="solid" size="sm" @click="removeImage(0)" />
+                  </div>
+                  <span class="absolute top-2 left-2 bg-black/60 text-white text-[10px] font-semibold px-2 py-0.5 rounded">
+                    Principale
+                  </span>
+                </div>
 
-                <div
-                  v-if="!uploadedImages.length"
-                  class="flex flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-neutral-200 bg-neutral-50 py-12 cursor-pointer transition hover:border-neutral-300 hover:bg-neutral-100"
-                  @click="triggerImageInput">
-                  <UIcon name="i-lucide-image-plus" class="size-10 text-neutral-400" />
-                  <div class="text-center">
-                    <p class="text-sm font-medium text-neutral-700">Ajouter des images</p>
-                    <p class="text-xs text-neutral-500 mt-0.5">Cliquez ou déposez vos fichiers ici</p>
+                <div v-if="uploadedImages.length > 1" class="grid grid-cols-4 sm:grid-cols-6 gap-2">
+                  <div
+                    v-for="(img, idx) in uploadedImages.slice(1)"
+                    :key="idx + 1"
+                    class="relative aspect-square overflow-hidden rounded-lg border border-neutral-200 bg-neutral-100 group cursor-pointer">
+                    <img :src="img.url" :alt="`Image ${idx + 2}`" class="h-full w-full object-cover" />
+                    <div
+                      class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
+                      <UButton
+                        v-if="idx + 1 > 0"
+                        icon="i-lucide-arrow-left"
+                        color="neutral"
+                        variant="solid"
+                        size="xs"
+                        @click="moveImageLeft(idx + 1)" />
+                      <UButton icon="i-lucide-trash-2" color="error" variant="solid" size="xs" @click="removeImage(idx + 1)" />
+                      <UButton
+                        v-if="idx + 1 < uploadedImages.length - 1"
+                        icon="i-lucide-arrow-right"
+                        color="neutral"
+                        variant="solid"
+                        size="xs"
+                        @click="moveImageRight(idx + 1)" />
+                    </div>
+                  </div>
+
+                  <div
+                    class="aspect-square flex items-center justify-center rounded-lg border-2 border-dashed border-neutral-200 bg-neutral-50 cursor-pointer hover:border-neutral-300 hover:bg-neutral-100 transition"
+                    @click="triggerImageInput">
+                    <UIcon name="i-lucide-plus" class="size-5 text-neutral-400" />
                   </div>
                 </div>
 
-                <div v-else class="space-y-3">
-                  <div class="relative overflow-hidden rounded-lg border border-neutral-200 bg-neutral-100 aspect-video group">
-                    <img :src="uploadedImages[0]?.url" alt="Image principale" class="h-full w-full object-contain" />
-                    <div
-                      class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
-                      <UButton icon="i-lucide-trash-2" color="error" variant="solid" size="sm" @click="removeImage(0)" />
+                <UButton
+                  color="neutral"
+                  variant="ghost"
+                  size="sm"
+                  icon="i-lucide-upload-cloud"
+                  :label="uploading ? 'Téléchargement…' : 'Ajouter des images'"
+                  :loading="uploading"
+                  @click="triggerImageInput" />
+              </div>
+
+              <input id="product-images-upload" type="file" class="hidden" accept="image/*" multiple @change="onImagesChange" />
+            </UCard>
+
+            <!-- Pricing -->
+            <UCard>
+              <template #header>
+                <h3 class="text-sm font-semibold text-neutral-800">Prix</h3>
+              </template>
+              <div class="grid grid-cols-2 gap-4">
+                <UFormField label="Prix (MAD)" name="price" required class="w-full">
+                  <UInput v-model="state.price" type="number" step="0.01" min="0" placeholder="0.00" size="md" class="w-full" />
+                </UFormField>
+                <UFormField label="Prix comparé (MAD)" name="compare_at_price" description="Affiche un prix barré" class="w-full">
+                  <UInput
+                    v-model="state.compare_at_price"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    placeholder="0.00"
+                    size="md"
+                    class="w-full" />
+                </UFormField>
+              </div>
+
+              <div
+                v-if="state.compare_at_price && state.price && parseFloat(state.compare_at_price) > parseFloat(state.price)"
+                class="mt-3 flex items-center gap-2 text-xs text-green-700 bg-green-50 rounded-md px-3 py-2">
+                <UIcon name="i-lucide-tag" class="size-3.5 shrink-0" />
+                Réduction de {{ Math.round((1 - parseFloat(state.price) / parseFloat(state.compare_at_price)) * 100) }}%
+              </div>
+            </UCard>
+
+            <!-- Inventory -->
+            <UCard>
+              <template #header>
+                <h3 class="text-sm font-semibold text-neutral-800">Inventaire</h3>
+              </template>
+              <div class="grid grid-cols-2 gap-4">
+                <UFormField label="SKU (Référence)" name="sku" required class="w-full">
+                  <UInput v-model="state.sku" placeholder="Ex. RYZEN-5950X-001" size="md" class="w-full" />
+                </UFormField>
+                <UFormField label="Quantité" name="stock_quantity" class="w-full">
+                  <UInput v-model="state.stock_quantity" type="number" min="0" placeholder="—" size="md" class="w-full" />
+                </UFormField>
+              </div>
+              <div class="mt-4">
+                <UFormField label="Disponibilité" name="stock_status" class="w-full">
+                  <USelectMenu
+                    v-model="state.stock_status"
+                    :items="stockStatusOptions"
+                    size="md"
+                    class="w-full"
+                    value-key="value"
+                    label-key="label" />
+                </UFormField>
+              </div>
+            </UCard>
+          </div>
+
+          <!-- ── RIGHT COLUMN (sidebar) ── -->
+          <div class="w-72 shrink-0 space-y-4">
+            <!-- Status -->
+            <UCard>
+              <template #header>
+                <h3 class="text-sm font-semibold text-neutral-800">Statut</h3>
+              </template>
+              <UFormField name="status" class="w-full">
+                <USelectMenu v-model="state.status" :items="statusOptions" size="md" class="w-full" value-key="value">
+                  <template #leading>
+                    <span :class="['inline-block size-2 rounded-full shrink-0', statusDotClass]" />
+                  </template>
+                </USelectMenu>
+              </UFormField>
+              <div class="mt-3">
+                <UFormField name="is_featured" class="w-full">
+                  <div class="flex items-center justify-between rounded-md border border-neutral-200 px-3 py-2.5">
+                    <div>
+                      <p class="text-sm font-medium text-neutral-800">Mis en avant</p>
+                      <p class="text-xs text-neutral-500 mt-0.5">Afficher en page d'accueil</p>
                     </div>
-                    <span class="absolute top-2 left-2 bg-black/60 text-white text-[10px] font-semibold px-2 py-0.5 rounded">
-                      Principale
-                    </span>
+                    <USwitch v-model="state.is_featured" />
                   </div>
+                </UFormField>
+              </div>
+            </UCard>
 
-                  <div v-if="uploadedImages.length > 1" class="grid grid-cols-4 sm:grid-cols-6 gap-2">
-                    <div
-                      v-for="(img, idx) in uploadedImages.slice(1)"
-                      :key="idx + 1"
-                      class="relative aspect-square overflow-hidden rounded-lg border border-neutral-200 bg-neutral-100 group cursor-pointer">
-                      <img :src="img.url" :alt="`Image ${idx + 2}`" class="h-full w-full object-cover" />
-                      <div
-                        class="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
-                        <UButton
-                          v-if="idx + 1 > 0"
-                          icon="i-lucide-arrow-left"
-                          color="neutral"
-                          variant="solid"
-                          size="xs"
-                          @click="moveImageLeft(idx + 1)" />
-                        <UButton icon="i-lucide-trash-2" color="error" variant="solid" size="xs" @click="removeImage(idx + 1)" />
-                        <UButton
-                          v-if="idx + 1 < uploadedImages.length - 1"
-                          icon="i-lucide-arrow-right"
-                          color="neutral"
-                          variant="solid"
-                          size="xs"
-                          @click="moveImageRight(idx + 1)" />
-                      </div>
-                    </div>
-
-                    <div
-                      class="aspect-square flex items-center justify-center rounded-lg border-2 border-dashed border-neutral-200 bg-neutral-50 cursor-pointer hover:border-neutral-300 hover:bg-neutral-100 transition"
-                      @click="triggerImageInput">
-                      <UIcon name="i-lucide-plus" class="size-5 text-neutral-400" />
-                    </div>
-                  </div>
-
-                  <UButton
-                    color="neutral"
-                    variant="ghost"
-                    size="sm"
-                    icon="i-lucide-upload-cloud"
-                    :label="uploading ? 'Téléchargement…' : 'Ajouter des images'"
-                    :loading="uploading"
-                    @click="triggerImageInput" />
-                </div>
-
-                <input id="product-images-upload" type="file" class="hidden" accept="image/*" multiple @change="onImagesChange" />
-              </UCard>
-
-              <!-- Pricing -->
-              <UCard>
-                <template #header>
-                  <h3 class="text-sm font-semibold text-neutral-800">Prix</h3>
-                </template>
-                <div class="grid grid-cols-2 gap-4">
-                  <UFormField label="Prix (MAD)" name="price" required class="w-full">
-                    <UInput v-model="state.price" type="number" step="0.01" min="0" placeholder="0.00" size="md" class="w-full" />
-                  </UFormField>
-                  <UFormField
-                    label="Prix comparé (MAD)"
-                    name="compare_at_price"
-                    description="Affiche un prix barré"
-                    class="w-full">
-                    <UInput
-                      v-model="state.compare_at_price"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      placeholder="0.00"
-                      size="md"
-                      class="w-full" />
-                  </UFormField>
-                </div>
-
-                <div
-                  v-if="state.compare_at_price && state.price && parseFloat(state.compare_at_price) > parseFloat(state.price)"
-                  class="mt-3 flex items-center gap-2 text-xs text-green-700 bg-green-50 rounded-md px-3 py-2">
-                  <UIcon name="i-lucide-tag" class="size-3.5 shrink-0" />
-                  Réduction de {{ Math.round((1 - parseFloat(state.price) / parseFloat(state.compare_at_price)) * 100) }}%
-                </div>
-              </UCard>
-
-              <!-- Inventory -->
-              <UCard>
-                <template #header>
-                  <h3 class="text-sm font-semibold text-neutral-800">Inventaire</h3>
-                </template>
-                <div class="grid grid-cols-2 gap-4">
-                  <UFormField label="SKU (Référence)" name="sku" required class="w-full">
-                    <UInput v-model="state.sku" placeholder="Ex. RYZEN-5950X-001" size="md" class="w-full" />
-                  </UFormField>
-                  <UFormField label="Quantité" name="stock_quantity" class="w-full">
-                    <UInput v-model="state.stock_quantity" type="number" min="0" placeholder="—" size="md" class="w-full" />
-                  </UFormField>
-                </div>
-                <div class="mt-4">
-                  <UFormField label="Disponibilité" name="stock_status" class="w-full">
-                    <USelectMenu
-                      v-model="state.stock_status"
-                      :items="stockStatusOptions"
-                      size="md"
-                      class="w-full"
-                      value-key="value"
-                      label-key="label" />
-                  </UFormField>
-                </div>
-              </UCard>
-            </div>
-
-            <!-- ── RIGHT COLUMN (sidebar) ── -->
-            <div class="w-72 shrink-0 space-y-4">
-              <!-- Status -->
-              <UCard>
-                <template #header>
-                  <h3 class="text-sm font-semibold text-neutral-800">Statut</h3>
-                </template>
-                <UFormField name="status" class="w-full">
-                  <USelectMenu v-model="state.status" :items="statusOptions" size="md" class="w-full" value-key="value">
+            <!-- Organisation -->
+            <UCard>
+              <template #header>
+                <h3 class="text-sm font-semibold text-neutral-800">Organisation</h3>
+              </template>
+              <div class="space-y-3">
+                <UFormField label="Marque" name="brand_id" required class="w-full">
+                  <USelectMenu
+                    v-model="state.brand_id"
+                    :items="brandItems"
+                    placeholder="Sélectionner une marque"
+                    size="md"
+                    class="w-full"
+                    label-key="label"
+                    value-key="value">
                     <template #leading>
-                      <span :class="['inline-block size-2 rounded-full shrink-0', statusDotClass]" />
+                      <UAvatar
+                        v-if="state.brand_id && brandsData?.find((b) => b.id === state.brand_id)?.image"
+                        :src="brandsData?.find((b) => b.id === state.brand_id)?.image ?? ''"
+                        size="xs"
+                        class="shrink-0" />
                     </template>
                   </USelectMenu>
                 </UFormField>
-                <div class="mt-3">
-                  <UFormField name="is_featured" class="w-full">
-                    <div class="flex items-center justify-between rounded-md border border-neutral-200 px-3 py-2.5">
-                      <div>
-                        <p class="text-sm font-medium text-neutral-800">Mis en avant</p>
-                        <p class="text-xs text-neutral-500 mt-0.5">Afficher en page d'accueil</p>
-                      </div>
-                      <USwitch v-model="state.is_featured" />
-                    </div>
-                  </UFormField>
-                </div>
-              </UCard>
-
-              <!-- Organisation -->
-              <UCard>
-                <template #header>
-                  <h3 class="text-sm font-semibold text-neutral-800">Organisation</h3>
-                </template>
-                <div class="space-y-3">
-                  <UFormField label="Marque" name="brand_id" required class="w-full">
-                    <USelectMenu
-                      v-model="state.brand_id"
-                      :items="brandItems"
-                      placeholder="Sélectionner une marque"
-                      size="md"
-                      class="w-full"
-                      label-key="label"
-                      value-key="value">
-                      <template #leading>
-                        <UAvatar
-                          v-if="state.brand_id && brandsData?.find((b) => b.id === state.brand_id)?.image"
-                          :src="brandsData?.find((b) => b.id === state.brand_id)?.image ?? ''"
-                          size="xs"
-                          class="shrink-0" />
-                      </template>
-                    </USelectMenu>
-                  </UFormField>
-                  <UFormField label="Catégorie" name="category_id" required class="w-full">
-                    <USelectMenu
-                      v-model="state.category_id"
-                      :items="(categoriesData ?? []).map((c) => ({ label: c.name, value: c.id }))"
-                      placeholder="Sélectionner une catégorie"
-                      size="md"
-                      class="w-full"
-                      label-key="label"
-                      value-key="value" />
-                  </UFormField>
-                  <UFormField label="Sous-catégorie" name="subcategory_id" class="w-full">
-                    <USelectMenu
-                      v-model="subcategoryIdModel"
-                      :items="filteredSubcategories.map((s) => ({ label: s.name, value: s.id }))"
-                      placeholder="Sélectionner"
-                      size="md"
-                      class="w-full"
-                      label-key="label"
-                      value-key="value"
-                      :disabled="state.category_id == null || !filteredSubcategories.length" />
-                  </UFormField>
-                  <UFormField
-                    label="Bloc page d'accueil"
-                    name="section"
-                    description="Où afficher ce produit dans le carrousel (produits actifs uniquement)"
-                    class="w-full">
-                    <USelectMenu
-                      v-model="state.section"
-                      :items="landingSectionOptions"
-                      placeholder="Aucune"
-                      size="md"
-                      class="w-full"
-                      label-key="label"
-                      value-key="value" />
-                  </UFormField>
-                </div>
-              </UCard>
-            </div>
+                <UFormField label="Catégorie" name="category_id" required class="w-full">
+                  <USelectMenu
+                    v-model="state.category_id"
+                    :items="(categoriesData ?? []).map((c) => ({ label: c.name, value: c.id }))"
+                    placeholder="Sélectionner une catégorie"
+                    size="md"
+                    class="w-full"
+                    label-key="label"
+                    value-key="value" />
+                </UFormField>
+                <UFormField label="Sous-catégorie" name="subcategory_id" class="w-full">
+                  <USelectMenu
+                    v-model="subcategoryIdModel"
+                    :items="filteredSubcategories.map((s) => ({ label: s.name, value: s.id }))"
+                    placeholder="Sélectionner"
+                    size="md"
+                    class="w-full"
+                    label-key="label"
+                    value-key="value"
+                    :disabled="state.category_id == null || !filteredSubcategories.length" />
+                </UFormField>
+                <UFormField
+                  label="Bloc page d'accueil"
+                  name="section"
+                  description="Où afficher ce produit dans le carrousel (produits actifs uniquement)"
+                  class="w-full">
+                  <USelectMenu
+                    v-model="state.section"
+                    :items="landingSectionOptions"
+                    placeholder="Aucune"
+                    size="md"
+                    class="w-full"
+                    label-key="label"
+                    value-key="value" />
+                </UFormField>
+                <UFormField
+                  label="Catégorie configurateur"
+                  name="configurator_category"
+                  description="Utilisée pour le PC Config Builder (filtrage des composants)."
+                  class="w-full">
+                  <USelectMenu
+                    v-model="state.configurator_category"
+                    :items="configuratorCategoryOptions"
+                    size="md"
+                    class="w-full"
+                    label-key="label"
+                    value-key="value" />
+                </UFormField>
+                <UFormField
+                  label="Sections catalogue"
+                  name="catalog_sections"
+                  description="Affiche ce produit dans les pages: Nouvel arrivage, Meilleures ventes, Promotion."
+                  class="w-full">
+                  <USelectMenu
+                    v-model="state.catalog_sections"
+                    :items="catalogSectionOptions"
+                    multiple
+                    placeholder="Aucune"
+                    size="md"
+                    class="w-full"
+                    label-key="label"
+                    value-key="value" />
+                </UFormField>
+              </div>
+            </UCard>
           </div>
-        </UForm>
-      </div>
+        </div>
+      </UForm>
     </template>
   </UDashboardPanel>
 </template>

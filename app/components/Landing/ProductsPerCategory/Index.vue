@@ -111,9 +111,7 @@ const showSection = computed(() => {
   return (props.blocks ?? []).length > 0;
 });
 
-const categoryCarousel = useTemplateRef<{ emblaApi: { scrollPrev: () => void; scrollNext: () => void } }>(
-  "categoryCarousel",
-);
+const categoryCarousel = useTemplateRef<{ emblaApi: { scrollPrev: () => void; scrollNext: () => void } }>("categoryCarousel");
 
 const scrollPrev = () => categoryCarousel.value?.emblaApi?.scrollPrev();
 const scrollNext = () => categoryCarousel.value?.emblaApi?.scrollNext();
@@ -129,8 +127,7 @@ const scrollNext = () => categoryCarousel.value?.emblaApi?.scrollNext();
           variant="ghost"
           aria-label="Précédent"
           class="rounded-full"
-          @click="scrollPrev"
-        />
+          @click="scrollPrev" />
       </UTooltip>
       <UTooltip text="Suivant" :delay-duration="0">
         <UButton
@@ -139,8 +136,7 @@ const scrollNext = () => categoryCarousel.value?.emblaApi?.scrollNext();
           variant="ghost"
           aria-label="Suivant"
           class="rounded-full"
-          @click="scrollNext"
-        />
+          @click="scrollNext" />
       </UTooltip>
     </div>
     <div class="flex gap-6 lg:gap-8">
@@ -153,16 +149,12 @@ const scrollNext = () => categoryCarousel.value?.emblaApi?.scrollNext();
           :variant="activeCategory === cat.value ? 'solid' : 'outline'"
           class="group w-full justify uppercase font-semibold"
           size="xl"
-          @click="activeCategory = cat.value"
-        >
+          @click="activeCategory = cat.value">
           <span
             :class="[
               'flex shrink-0 items-center justify-center overflow-hidden transition-[width,opacity] duration-200',
-              activeCategory === cat.value
-                ? 'w-4 opacity-100'
-                : 'w-0 opacity-0 group-hover:w-4 group-hover:opacity-100',
-            ]"
-          >
+              activeCategory === cat.value ? 'w-4 opacity-100' : 'w-0 opacity-0 group-hover:w-4 group-hover:opacity-100',
+            ]">
             <UIcon name="i-lucide-chevron-right" class="size-4 shrink-0" />
           </span>
           <span class="shrink-0">{{ cat.label }}</span>
@@ -182,8 +174,7 @@ const scrollNext = () => categoryCarousel.value?.emblaApi?.scrollNext();
             item: 'sm:basis-1/2 md:basis-1/3 lg:basis-1/4 shrink-0',
             container: 'gap-1',
             viewport: 'overflow-hidden',
-          }"
-        >
+          }">
           <div class="py-2">
             <ProductCard
               :to="`/products/${item.slug}`"
@@ -191,21 +182,19 @@ const scrollNext = () => categoryCarousel.value?.emblaApi?.scrollNext();
               :stock-status="item.stockStatus"
               :title="item.title"
               :current-price="item.currentPrice"
-              :old-price="item.oldPrice ?? ''"
-            />
+              :old-price="item.oldPrice ?? ''" />
           </div>
         </UCarousel>
       </div>
     </div>
     <div class="mt-6 flex justify-center">
       <UButton
-        to="/products"
         label="Voir tous les produits"
         trailing-icon="i-lucide-arrow-up-right"
         color="primary"
         size="lg"
         variant="outline"
-      />
+        :to="`/category/${activeCategory}`" />
     </div>
   </UContainer>
 </template>

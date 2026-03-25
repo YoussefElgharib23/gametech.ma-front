@@ -243,7 +243,7 @@ useSeoMeta({
 
 <template>
   <div class="w-full py-6 px-4">
-    <div class="flex gap-6 max-w-[1920px] mx-auto">
+    <div class="flex gap-6 w-full max-w-[1920px] mx-auto">
       <!-- Filters -->
       <aside class="hidden lg:block w-80 shrink-0">
         <div class="sticky top-14 space-y-4">
@@ -454,7 +454,7 @@ useSeoMeta({
                 <div class="relative h-16 w-16 shrink-0 overflow-hidden rounded-md bg-neutral-100">
                   <img :src="product.image" :alt="product.title" class="h-full w-full object-cover" loading="lazy" />
                 </div>
-                <div class="min-w-0 flex-1">
+                <div class="min-w-0 w-full flex-1">
                   <p class="text-xs font-medium text-neutral-900 line-clamp-2">
                     {{ product.title }}
                   </p>
@@ -475,7 +475,7 @@ useSeoMeta({
       </aside>
 
       <!-- Products list -->
-      <section ref="productsSectionRef" class="min-w-0">
+      <section ref="productsSectionRef" class="min-w-0 w-full flex-1">
         <div class="mb-6">
           <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-neutral-900">
             {{ archiveTitle }}
