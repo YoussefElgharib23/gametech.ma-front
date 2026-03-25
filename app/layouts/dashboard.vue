@@ -107,9 +107,9 @@ const groups = computed(() => [
       class="bg-elevated/25"
       :ui="{ footer: 'lg:border-t lg:border-default' }">
       <!-- TODO: Put this back as the main logo of the website -->
-      <!-- <template #header="{ collapsed }">
+      <template #header="{ collapsed }">
         <TeamsMenu :collapsed="collapsed" />
-      </template> -->
+      </template>
 
       <template #default="{ collapsed }">
         <UDashboardSearchButton :collapsed="collapsed" class="bg-transparent ring-default" />
@@ -117,6 +117,10 @@ const groups = computed(() => [
         <UNavigationMenu :collapsed="collapsed" :items="links[0]" orientation="vertical" tooltip popover />
 
         <UNavigationMenu :collapsed="collapsed" :items="links[1]" orientation="vertical" tooltip class="mt-auto" />
+      </template>
+
+      <template #footer="{ collapsed }">
+        <UserMenu :collapsed="collapsed" />
       </template>
     </UDashboardSidebar>
 

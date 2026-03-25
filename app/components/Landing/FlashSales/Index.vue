@@ -3,7 +3,7 @@ const flashProducts = ref([
   {
     id: 1,
     discount: "-400 MAD",
-    image: "/images/products/product-1.jpg",
+    image: "",
     specs: "8GB / 256GB",
     stockStatus: "EN STOCK",
     title: "Product Title 1",
@@ -14,7 +14,7 @@ const flashProducts = ref([
   {
     id: 2,
     discount: "-400 MAD",
-    image: "/images/products/product-2.jpg",
+    image: "",
     specs: "8GB / 256GB",
     stockStatus: "EN STOCK",
     title: "Product Title 2",
@@ -25,7 +25,7 @@ const flashProducts = ref([
   {
     id: 3,
     discount: "-400 MAD",
-    image: "/images/products/product-3.jpg",
+    image: "",
     specs: "8GB / 256GB",
     stockStatus: "EN STOCK",
     title: "Product Title 3",
@@ -36,7 +36,7 @@ const flashProducts = ref([
   {
     id: 4,
     discount: "-400 MAD",
-    image: "/images/products/product-4.jpg",
+    image: "",
     specs: "8GB / 256GB",
     stockStatus: "EN STOCK",
     title: "Product Title 4",
@@ -47,7 +47,7 @@ const flashProducts = ref([
   {
     id: 5,
     discount: "-400 MAD",
-    image: "/images/products/product-5.jpg",
+    image: "",
     specs: "8GB / 256GB",
     stockStatus: "EN STOCK",
     title: "Product Title 5",
@@ -58,7 +58,7 @@ const flashProducts = ref([
   {
     id: 6,
     discount: "-400 MAD",
-    image: "/images/products/product-6.jpg",
+    image: "",
     specs: "8GB / 256GB",
     stockStatus: "EN STOCK",
     title: "Product Title 6",
@@ -69,7 +69,7 @@ const flashProducts = ref([
   {
     id: 7,
     discount: "-700 MAD",
-    image: "/images/products/product-7.jpg",
+    image: "",
     specs: "16GB/512GB",
     stockStatus: "EN STOCK",
     title: "Product Title 7",
@@ -80,7 +80,7 @@ const flashProducts = ref([
   {
     id: 8,
     discount: "-700 MAD",
-    image: "/images/products/product-8.jpg",
+    image: "",
     specs: "16GB/512GB",
     stockStatus: "EN STOCK",
     title: "Product Title 8",
@@ -91,7 +91,7 @@ const flashProducts = ref([
   {
     id: 9,
     discount: "-600 MAD",
-    image: "/images/products/product-9.jpg",
+    image: "",
     specs: "16GB/512GB",
     stockStatus: "EN STOCK",
     title: "Product Title 9",
@@ -102,7 +102,7 @@ const flashProducts = ref([
   {
     id: 10,
     discount: "-600 MAD",
-    image: "/images/products/product-10.jpg",
+    image: "",
     specs: "16GB/512GB",
     stockStatus: "EN STOCK",
     title: "Product Title 10",
@@ -113,7 +113,7 @@ const flashProducts = ref([
   {
     id: 11,
     discount: "-700 MAD",
-    image: "/images/products/product-11.jpg",
+    image: "",
     specs: "16GB/512GB",
     stockStatus: "EN STOCK",
     title: "Product Title 11",
@@ -213,7 +213,7 @@ const flashProducts = ref([
   background: radial-gradient(circle, var(--color-brand-accent-500) 0%, transparent 70%);
   top: 0;
   left: -100px;
-  opacity: 0.10;
+  opacity: 0.1;
 }
 
 .flash-glow-right {
