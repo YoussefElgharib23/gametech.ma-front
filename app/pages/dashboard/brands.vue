@@ -230,16 +230,17 @@ async function confirmDelete() {
                 <UButton
                   icon="i-lucide-pencil"
                   color="neutral"
-                  variant="soft"
+                  variant="ghost"
                   size="xs"
                   aria-label="Modifier"
                   @click="openEdit(row.original)" />
               </UTooltip>
+              <USeparator orientation="vertical" class="h-4" />
               <UTooltip :delay-duration="0" text="Supprimer">
                 <UButton
                   icon="i-lucide-trash-2"
                   color="error"
-                  variant="soft"
+                  variant="ghost"
                   size="xs"
                   aria-label="Supprimer"
                   @click="openDelete(row.original)" />

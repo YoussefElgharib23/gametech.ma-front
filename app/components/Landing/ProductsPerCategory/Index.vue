@@ -1,6 +1,17 @@
+<script lang="ts">
+import type { LandingProductCard } from "~/components/Landing/Products/Index.vue";
+
+export interface ProductsPerCategoryBlock {
+  slug: string;
+  name: string;
+  products: LandingProductCard[];
+}
+</script>
+
 <script setup lang="ts">
-interface Product {
+interface DemoProduct {
   id: number;
+  slug: string;
   image: string;
   stockStatus: string;
   title: string;
@@ -8,7 +19,14 @@ interface Product {
   oldPrice?: string;
 }
 
-const categories = [
+const props = defineProps<{
+  /** When omitted (e.g. dashboard preview), built-in demo data is used. */
+  blocks?: ProductsPerCategoryBlock[];
+}>();
+
+const useDemo = computed(() => props.blocks === undefined);
+
+const demoCategoryTabs = [
   { value: "carte-graphique", label: "CARTE GRAPHIQUE" },
   { value: "processeur", label: "PROCESSEUR" },
   { value: "memoires-ram", label: "MÉMOIRES RAM" },
@@ -17,18 +35,13 @@ const categories = [
   { value: "alimentation-pc", label: "ALIMENTATION PC (PSU)" },
 ];
 
-const activeCategory = ref("carte-graphique");
-
-const makeProducts = (
-  prefix: string,
-  count: number,
-  baseId: number,
-): Product[] =>
+const makeDemoProducts = (prefix: string, count: number, baseId: number): DemoProduct[] =>
   Array.from({ length: count }, (_, i) => {
     const id = baseId + i;
     const hasOld = i % 3 !== 2;
     return {
       id,
+      slug: `demo-${prefix}-${id}`.toLowerCase().replace(/\s+/g, "-"),
       image: `/images/products/product-${id % 12 || 12}.jpg`,
       stockStatus: "EN STOCK",
       title: `${prefix} ${i + 1}`,
@@ -39,27 +52,75 @@ const makeProducts = (
     };
   });
 
-const productsByCategory = ref<Record<string, Product[]>>({
-  "carte-graphique": makeProducts("Carte graphique", 10, 101),
-  processeur: makeProducts("Processeur", 10, 201),
-  "memoires-ram": makeProducts("RAM", 10, 301),
-  "disques-durs": makeProducts("Disque dur", 10, 401),
-  "cpu-cooler": makeProducts("CPU Cooler", 10, 501),
-  "alimentation-pc": makeProducts("Alimentation", 10, 601),
+const demoProductsByCategory = ref<Record<string, DemoProduct[]>>({
+  "carte-graphique": makeDemoProducts("Carte graphique", 10, 101),
+  processeur: makeDemoProducts("Processeur", 10, 201),
+  "memoires-ram": makeDemoProducts("RAM", 10, 301),
+  "disques-durs": makeDemoProducts("Disque dur", 10, 401),
+  "cpu-cooler": makeDemoProducts("CPU Cooler", 10, 501),
+  "alimentation-pc": makeDemoProducts("Alimentation", 10, 601),
 });
 
-const currentProducts = computed(
-  () => productsByCategory.value[activeCategory.value] ?? [],
+const categoryTabs = computed(() => {
+  if (useDemo.value) {
+    return demoCategoryTabs;
+  }
+  return (props.blocks ?? []).map((b) => ({
+    value: b.slug,
+    label: b.name.toUpperCase(),
+  }));
+});
+
+const activeCategory = ref("");
+
+watch(
+  [useDemo, () => props.blocks],
+  () => {
+    if (useDemo.value) {
+      const first = demoCategoryTabs[0]?.value;
+      if (first && !demoProductsByCategory.value[activeCategory.value]) {
+        activeCategory.value = first;
+      } else if (first && !activeCategory.value) {
+        activeCategory.value = first;
+      }
+      return;
+    }
+    const list = props.blocks ?? [];
+    if (list.length === 0) {
+      return;
+    }
+    if (!list.some((b) => b.slug === activeCategory.value)) {
+      activeCategory.value = list[0]!.slug;
+    }
+  },
+  { immediate: true },
 );
 
-const categoryCarousel = useTemplateRef<{ emblaApi: any }>("categoryCarousel");
+const currentProducts = computed((): DemoProduct[] | LandingProductCard[] => {
+  if (useDemo.value) {
+    return demoProductsByCategory.value[activeCategory.value] ?? [];
+  }
+  const block = props.blocks?.find((b) => b.slug === activeCategory.value);
+  return block?.products ?? [];
+});
+
+const showSection = computed(() => {
+  if (useDemo.value) {
+    return true;
+  }
+  return (props.blocks ?? []).length > 0;
+});
+
+const categoryCarousel = useTemplateRef<{ emblaApi: { scrollPrev: () => void; scrollNext: () => void } }>(
+  "categoryCarousel",
+);
 
 const scrollPrev = () => categoryCarousel.value?.emblaApi?.scrollPrev();
 const scrollNext = () => categoryCarousel.value?.emblaApi?.scrollNext();
 </script>
 
 <template>
-  <UContainer class="py-8">
+  <UContainer v-if="showSection" class="py-8">
     <div class="flex items-center justify-between mb-4">
       <UTooltip text="Précédent" :delay-duration="0">
         <UButton
@@ -86,7 +147,7 @@ const scrollNext = () => categoryCarousel.value?.emblaApi?.scrollNext();
       <!-- Left: vertical category buttons -->
       <div class="shrink-0 w-48 lg:w-56 flex flex-col gap-2">
         <UButton
-          v-for="cat in categories"
+          v-for="cat in categoryTabs"
           :key="cat.value"
           :color="activeCategory === cat.value ? 'primary' : 'neutral'"
           :variant="activeCategory === cat.value ? 'solid' : 'outline'"
@@ -125,11 +186,12 @@ const scrollNext = () => categoryCarousel.value?.emblaApi?.scrollNext();
         >
           <div class="py-2">
             <ProductCard
-              :image="item.image"
+              :to="`/products/${item.slug}`"
+              :image="item.image ?? ''"
               :stock-status="item.stockStatus"
               :title="item.title"
               :current-price="item.currentPrice"
-              :old-price="item.oldPrice"
+              :old-price="item.oldPrice ?? ''"
             />
           </div>
         </UCarousel>

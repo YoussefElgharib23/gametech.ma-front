@@ -44,6 +44,7 @@ const schema = z.object({
   status: z.enum(["active", "inactive", "draft"]),
   is_featured: z.boolean(),
   position: z.number(),
+  section: z.enum(["selections", "new-arrival", "best-seller"]).optional(),
 });
 
 type Schema = z.output<typeof schema>;
@@ -63,6 +64,7 @@ const state = reactive<Partial<z.infer<typeof schema>>>({
   status: "draft",
   is_featured: false,
   position: 0,
+  section: undefined,
 });
 
 const formRef = useTemplateRef<{
@@ -115,6 +117,13 @@ const stockStatusOptions = [
   { label: "En stock", value: "in_stock" },
   { label: "Rupture de stock", value: "out_of_stock" },
   { label: "Pré-commande", value: "preorder" },
+];
+
+const landingSectionOptions: { label: string; value: "selections" | "new-arrival" | "best-seller" | undefined }[] = [
+  { label: "Aucune", value: undefined },
+  { label: "Nos sélections", value: "selections" },
+  { label: "Nouvel arrivage", value: "new-arrival" },
+  { label: "Best seller", value: "best-seller" },
 ];
 
 const statusDotClass = computed(() => {
@@ -207,6 +216,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
         status: data.status,
         is_featured: data.is_featured,
         position: data.position,
+        section: data.section === undefined ? null : data.section,
         upload_ids: uploadedImages.value.map((img) => img.id).filter((id) => id > 0),
       },
     });
@@ -486,6 +496,20 @@ function submitForm() {
                       label-key="label"
                       value-key="value"
                       :disabled="state.category_id == null || !filteredSubcategories.length" />
+                  </UFormField>
+                  <UFormField
+                    label="Bloc page d'accueil"
+                    name="section"
+                    description="Où afficher ce produit dans le carrousel (produits actifs uniquement)"
+                    class="w-full">
+                    <USelectMenu
+                      v-model="state.section"
+                      :items="landingSectionOptions"
+                      placeholder="Aucune"
+                      size="md"
+                      class="w-full"
+                      label-key="label"
+                      value-key="value" />
                   </UFormField>
                 </div>
               </UCard>

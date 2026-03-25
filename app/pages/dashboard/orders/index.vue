@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { EyeIcon } from "lucide-vue-next";
-
 definePageMeta({
   layout: "dashboard",
 });
@@ -33,6 +31,21 @@ const searchQuery = ref("");
 const statusFilter = ref("all");
 const page = ref(1);
 const perPage = 20;
+const confirmModalOpen = ref(false);
+const pendingStatusOrderId = ref<number | null>(null);
+const pendingStatusValue = ref<string | null>(null);
+const confirmPreviewItems = ref<
+  Array<{
+    product_name: string;
+    ordered_quantity: number;
+    stock_quantity: number | null;
+    remaining_stock: number | null;
+    has_enough_stock: boolean;
+  }>
+>([]);
+const confirmCanProceed = ref(true);
+const deleteModalOpen = ref(false);
+const pendingDeleteOrderId = ref<number | null>(null);
 
 const statusOptions = [
   { value: "all", label: "Tous", color: "gray" },
@@ -59,6 +72,44 @@ const getOrderTotalLabel = (order: Order) => {
   return moneyFormatter.format(Number(order.total || 0));
 };
 
+const orderColumns = [
+  {
+    accessorKey: "uid",
+    header: "Numero",
+    meta: { class: { td: "w-32" } },
+  },
+  {
+    accessorKey: "customer_name",
+    header: "Client",
+    meta: { class: { td: "min-w-0" } },
+  },
+  {
+    accessorKey: "contact",
+    header: "Contact",
+    meta: { class: { td: "min-w-0" } },
+  },
+  {
+    accessorKey: "total",
+    header: "Total",
+    meta: { class: { td: "w-36" } },
+  },
+  {
+    accessorKey: "status",
+    header: "Statut",
+    meta: { class: { td: "w-48" } },
+  },
+  {
+    accessorKey: "created_at",
+    header: "Date",
+    meta: { class: { td: "w-40" } },
+  },
+  {
+    id: "actions",
+    header: "",
+    meta: { class: { td: "w-20 text-right" } },
+  },
+];
+
 const query = computed(() => ({
   status: statusFilter.value !== "all" ? statusFilter.value : undefined,
   search: searchQuery.value.trim() || undefined,
@@ -84,6 +135,71 @@ const updateOrderStatus = async (orderId: number, newStatus: string) => {
     await refresh();
   } catch (error) {
     console.error("Failed to update order status:", error);
+  }
+};
+
+const onStatusChange = async (order: Order, nextStatus: string) => {
+  if (nextStatus !== "confirmed" || order.status === "confirmed") {
+    await updateOrderStatus(order.id, nextStatus);
+    return;
+  }
+
+  try {
+    const preview = await $apiFetch<{
+      can_confirm: boolean;
+      items: Array<{
+        product_name: string;
+        ordered_quantity: number;
+        stock_quantity: number | null;
+        remaining_stock: number | null;
+        has_enough_stock: boolean;
+      }>;
+    }>(`/admin/orders/${order.id}/confirm-preview`);
+
+    pendingStatusOrderId.value = order.id;
+    pendingStatusValue.value = nextStatus;
+    confirmPreviewItems.value = preview.items ?? [];
+    confirmCanProceed.value = preview.can_confirm;
+    confirmModalOpen.value = true;
+  } catch (error) {
+    console.error("Failed to preview confirmation impact:", error);
+  }
+};
+
+const closeConfirmModal = () => {
+  confirmModalOpen.value = false;
+  pendingStatusOrderId.value = null;
+  pendingStatusValue.value = null;
+  confirmPreviewItems.value = [];
+  confirmCanProceed.value = true;
+};
+
+const confirmStatusUpdate = async () => {
+  if (!pendingStatusOrderId.value || !pendingStatusValue.value || !confirmCanProceed.value) return;
+  await updateOrderStatus(pendingStatusOrderId.value, pendingStatusValue.value);
+  closeConfirmModal();
+};
+
+const askDeleteOrder = (orderId: number) => {
+  pendingDeleteOrderId.value = orderId;
+  deleteModalOpen.value = true;
+};
+
+const closeDeleteModal = () => {
+  deleteModalOpen.value = false;
+  pendingDeleteOrderId.value = null;
+};
+
+const confirmDeleteOrder = async () => {
+  if (!pendingDeleteOrderId.value) return;
+  try {
+    await $apiFetch(`/admin/orders/${pendingDeleteOrderId.value}`, {
+      method: "DELETE",
+    });
+    await refresh();
+    closeDeleteModal();
+  } catch (error) {
+    console.error("Failed to delete order:", error);
   }
 };
 
@@ -114,66 +230,64 @@ watch([searchQuery, statusFilter], () => {
           <p class="text-gray-500">Aucune commande trouvee</p>
         </div>
 
-        <div v-else class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-300">
-            <thead>
-              <tr>
-                <th class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6">Numero</th>
-                <th class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Client</th>
-                <th class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Contact</th>
-                <th class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Total</th>
-                <th class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Statut</th>
-                <th class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Date</th>
-                <th class="relative py-3.5 pl-3 pr-4 sm:pr-6">
-                  <span class="sr-only">Actions</span>
-                </th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-200">
-              <tr v-for="order in orders" :key="order.id" class="hover:bg-gray-50">
-                <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6">
-                  #{{ order.uid.substring(0, 8) }}
-                </td>
-                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-900">
-                  {{ order.customer.first_name }} {{ order.customer.last_name }}
-                </td>
-                <td class="px-3 py-4 text-sm text-gray-500">
-                  <div>{{ order.customer.email }}</div>
-                  <div class="text-gray-400">{{ order.customer.phone }}</div>
-                </td>
-                <td class="whitespace-nowrap px-3 py-4 text-sm font-medium text-gray-900">
-                  {{ getOrderTotalLabel(order) }}
-                </td>
-                <td class="whitespace-nowrap px-3 py-4 text-sm">
-                  <USelect
-                    :model-value="order.status"
-                    :items="statusOptions.filter((s) => s.value !== 'all')"
-                    label-key="label"
-                    value-key="value"
-                    size="xs"
-                    @update:model-value="(val) => updateOrderStatus(order.id, val as string)" />
-                </td>
-                <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                  {{ order.created_at }}
-                </td>
-                <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                  <div class="flex border border-neutral-200 rounded-xl overflow-hidden ring-1 ring-neutral-100/50 max-w-fit">
-                    <div class="bg-neutral-50/80 p-1.5 space-x-1">
-                      <UTooltip :delay-duration="0" text="Voir les details">
-                        <UButton
-                          icon="i-lucide-eye"
-                          color="neutral"
-                          variant="ghost"
-                          size="xs"
-                          :to="`/dashboard/orders/${order.id}`" />
-                      </UTooltip>
-                    </div>
-                  </div>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
+        <UTable v-else :data="orders" :columns="orderColumns">
+          <template #uid-cell="{ row }">
+            <span class="font-medium text-neutral-900">#{{ row.original.uid.substring(0, 8) }}</span>
+          </template>
+
+          <template #customer_name-cell="{ row }">
+            <span class="text-sm text-neutral-900">
+              {{ row.original.customer.first_name }} {{ row.original.customer.last_name }}
+            </span>
+          </template>
+
+          <template #contact-cell="{ row }">
+            <div class="text-sm text-neutral-600">
+              <div>{{ row.original.customer.email }}</div>
+              <div class="text-xs text-neutral-500">{{ row.original.customer.phone }}</div>
+            </div>
+          </template>
+
+          <template #total-cell="{ row }">
+            <span class="font-medium text-neutral-900">{{ getOrderTotalLabel(row.original) }}</span>
+          </template>
+
+          <template #status-cell="{ row }">
+            <USelect
+              :model-value="row.original.status"
+              :items="statusOptions.filter((s) => s.value !== 'all')"
+              label-key="label"
+              value-key="value"
+              size="xs"
+              @update:model-value="(val) => onStatusChange(row.original, val as string)" />
+          </template>
+
+          <template #created_at-cell="{ row }">
+            <span class="text-sm text-neutral-600">{{ row.original.created_at }}</span>
+          </template>
+
+          <template #actions-cell="{ row }">
+            <div class="flex items-center justify-end gap-1 bg-neutral-50 rounded-lg border border-neutral-200 p-1">
+              <UTooltip :delay-duration="0" text="Voir les details">
+                <UButton
+                  icon="i-lucide-eye"
+                  color="neutral"
+                  variant="ghost"
+                  size="xs"
+                  :to="`/dashboard/orders/${row.original.id}`" />
+              </UTooltip>
+              <USeparator orientation="vertical" class="h-4" />
+              <UTooltip :delay-duration="0" text="Supprimer la commande">
+                <UButton
+                  icon="i-lucide-trash-2"
+                  color="error"
+                  variant="ghost"
+                  size="xs"
+                  @click="askDeleteOrder(row.original.id)" />
+              </UTooltip>
+            </div>
+          </template>
+        </UTable>
 
         <div v-if="lastPage > 1" class="mt-6 flex justify-center border-t border-neutral-200 px-4 py-3">
           <UPagination v-model="page" :page-count="lastPage" :total="total" />
@@ -181,4 +295,38 @@ watch([searchQuery, statusFilter], () => {
       </UCard>
     </template>
   </UDashboardPanel>
+
+  <UModal v-model:open="confirmModalOpen" title="Confirmer le changement de statut" @close="closeConfirmModal">
+    <template #body>
+      <p class="text-sm text-neutral-600 mb-3">En confirmant cette commande, le stock des produits sera déduit.</p>
+      <div class="space-y-2 max-h-64 overflow-auto">
+        <div v-for="(item, idx) in confirmPreviewItems" :key="idx" class="rounded border border-neutral-200 p-2 text-sm">
+          <p class="font-medium">{{ item.product_name }}</p>
+          <p class="text-neutral-600">
+            Commandé: {{ item.ordered_quantity }} · Stock: {{ item.stock_quantity ?? "Non suivi" }} · Reste:
+            {{ item.remaining_stock ?? "N/A" }}
+          </p>
+          <p v-if="!item.has_enough_stock" class="text-error-600 text-xs mt-1">Stock insuffisant pour ce produit.</p>
+        </div>
+      </div>
+    </template>
+    <template #footer>
+      <div class="flex justify-end gap-2">
+        <UButton color="neutral" variant="outline" label="Annuler" @click="closeConfirmModal" />
+        <UButton color="primary" label="Confirmer le statut" :disabled="!confirmCanProceed" @click="confirmStatusUpdate" />
+      </div>
+    </template>
+  </UModal>
+
+  <UModal v-model:open="deleteModalOpen" title="Supprimer la commande" @close="closeDeleteModal">
+    <template #body>
+      <p class="text-sm text-neutral-600">Cette action est irréversible. Voulez-vous vraiment supprimer cette commande ?</p>
+    </template>
+    <template #footer>
+      <div class="flex justify-end gap-2">
+        <UButton color="neutral" variant="outline" label="Annuler" @click="closeDeleteModal" />
+        <UButton color="error" label="Supprimer" @click="confirmDeleteOrder" />
+      </div>
+    </template>
+  </UModal>
 </template>

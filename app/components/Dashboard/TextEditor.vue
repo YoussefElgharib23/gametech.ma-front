@@ -169,8 +169,8 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="ring ring-accented rounded-md flex flex-col">
-    <div class="flex items-center p-1 w-full flex-1 flex-wrap border border-accented">
+  <div class="rounded-md flex flex-col ring ring-muted overflow-hidden">
+    <div class="flex items-center p-1 w-full flex-1 flex-wrap border-b border-muted bg-gray-50">
       <div class="flex items-center gap-x-1">
         <UButton
           type="button"

@@ -33,10 +33,18 @@ export default defineAppConfig({
         }
       },
     },
+    modal: {
+      slots: {
+        header: 'sm:p-3 p-3',
+        body: 'sm:p-3 p-3',
+        footer: 'sm:p-3 p-3',
+        content: 'divide-y-0'
+      }
+    },
     input: {
       slots: {
         root: 'w-full'
       }
-    }
+    },
   }
 })

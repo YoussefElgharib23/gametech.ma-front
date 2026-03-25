@@ -27,6 +27,7 @@ interface Product {
   status: "active" | "inactive" | "draft";
   is_featured: boolean;
   position: number;
+  section: string | null;
   published_at: string | null;
   images: string[];
 }
@@ -85,6 +86,11 @@ const productColumns = [
     accessorKey: "price_label",
     header: "Prix",
     meta: { class: { td: "w-32" } },
+  },
+  {
+    accessorKey: "section",
+    header: "Accueil",
+    meta: { class: { td: "w-28" } },
   },
   {
     accessorKey: "stock_status",
@@ -175,6 +181,19 @@ function getStatusLabel(status: string) {
       return status;
   }
 }
+
+function getLandingSectionLabel(section: string | null) {
+  switch (section) {
+    case "selections":
+      return "Sélections";
+    case "new-arrival":
+      return "Nouveautés";
+    case "best-seller":
+      return "Best seller";
+    default:
+      return "—";
+  }
+}
 </script>
 
 <template>
@@ -249,6 +268,10 @@ function getStatusLabel(status: string) {
             </div>
           </template>
 
+          <template #section-cell="{ row }">
+            <span class="text-xs text-neutral-600">{{ getLandingSectionLabel(row.original.section) }}</span>
+          </template>
+
           <template #category_display-cell="{ row }">
             <span v-if="row.original.category_name || row.original.subcategory_name" class="text-sm text-neutral-700">
               <template v-if="row.original.subcategory_name">
@@ -274,7 +297,7 @@ function getStatusLabel(status: string) {
           </template>
 
           <template #actions-cell="{ row }">
-            <div class="flex items-center justify-end gap-1">
+            <div class="flex items-center justify-end gap-1 bg-neutral-50 rounded-lg border border-neutral-200 p-1">
               <UTooltip text="Voir le produit" :delay-duration="0">
                 <UButton
                   icon="i-lucide-eye"
@@ -286,6 +309,7 @@ function getStatusLabel(status: string) {
                   target="_blank"
                   rel="noopener noreferrer" />
               </UTooltip>
+              <USeparator orientation="vertical" class="h-4" />
               <UTooltip text="Modifier le produit" :delay-duration="0">
                 <UButton
                   icon="i-lucide-pencil"
@@ -295,6 +319,7 @@ function getStatusLabel(status: string) {
                   aria-label="Modifier"
                   :to="`/dashboard/products/${row.original.id}/edit`" />
               </UTooltip>
+              <USeparator orientation="vertical" class="h-4" />
               <UTooltip text="Supprimer le produit" :delay-duration="0">
                 <UButton
                   icon="i-lucide-trash-2"

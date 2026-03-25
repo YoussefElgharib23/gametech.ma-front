@@ -56,6 +56,19 @@ const quantityDrafts = ref<Record<number, number>>({});
 const showAddProduct = ref(false);
 const removeModalOpen = ref(false);
 const pendingRemoveItemId = ref<number | null>(null);
+const confirmStatusModalOpen = ref(false);
+const pendingStatusValue = ref<string | null>(null);
+const confirmPreviewItems = ref<
+  Array<{
+    product_name: string;
+    ordered_quantity: number;
+    stock_quantity: number | null;
+    remaining_stock: number | null;
+    has_enough_stock: boolean;
+  }>
+>([]);
+const confirmCanProceed = ref(true);
+const deleteOrderModalOpen = ref(false);
 const searchProduct = ref("");
 const searchResults = ref<any[]>([]);
 const searchLoading = ref(false);
@@ -130,6 +143,69 @@ const updateStatus = async (newStatus: string | undefined) => {
     await refresh();
   } catch (error) {
     console.error("Failed to update status:", error);
+  }
+};
+
+const onStatusChange = async (newStatus: string | undefined) => {
+  if (!newStatus || !order.value) return;
+
+  if (newStatus !== "confirmed" || order.value.status === "confirmed") {
+    await updateStatus(newStatus);
+    return;
+  }
+
+  try {
+    const preview = await $apiFetch<{
+      can_confirm: boolean;
+      items: Array<{
+        product_name: string;
+        ordered_quantity: number;
+        stock_quantity: number | null;
+        remaining_stock: number | null;
+        has_enough_stock: boolean;
+      }>;
+    }>(`/admin/orders/${orderId.value}/confirm-preview`);
+
+    pendingStatusValue.value = newStatus;
+    confirmPreviewItems.value = preview.items ?? [];
+    confirmCanProceed.value = preview.can_confirm;
+    confirmStatusModalOpen.value = true;
+  } catch (error) {
+    console.error("Failed to preview confirmation impact:", error);
+  }
+};
+
+const closeConfirmStatusModal = () => {
+  confirmStatusModalOpen.value = false;
+  pendingStatusValue.value = null;
+  confirmPreviewItems.value = [];
+  confirmCanProceed.value = true;
+};
+
+const confirmStatusUpdate = async () => {
+  if (!pendingStatusValue.value || !confirmCanProceed.value) return;
+  await updateStatus(pendingStatusValue.value);
+  closeConfirmStatusModal();
+};
+
+const askDeleteOrder = () => {
+  deleteOrderModalOpen.value = true;
+};
+
+const closeDeleteOrderModal = () => {
+  deleteOrderModalOpen.value = false;
+};
+
+const confirmDeleteOrder = async () => {
+  if (!order.value) return;
+  try {
+    await $apiFetch(`/admin/orders/${order.value.id}`, {
+      method: "DELETE",
+    });
+    closeDeleteOrderModal();
+    await navigateTo("/dashboard/orders");
+  } catch (error) {
+    console.error("Failed to delete order:", error);
   }
 };
 
@@ -248,20 +324,20 @@ watch(searchProduct, () => {
     </template>
 
     <template #body>
-      <div v-if="order" class="space-y-6">
-        <div class="mb-2">
-          <NuxtLink to="/dashboard/orders" class="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
-            <UIcon name="i-heroicons-arrow-left" class="h-4 w-4" />
-            Retour aux commandes
-          </NuxtLink>
-        </div>
+      <div class="mb-2">
+        <NuxtLink to="/dashboard/orders" class="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
+          <UIcon name="i-heroicons-arrow-left" class="h-4 w-4" />
+          Retour aux commandes
+        </NuxtLink>
+      </div>
 
-        <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
-          <div class="space-y-6 lg:col-span-2">
+      <div v-if="order">
+        <div class="grid grid-cols-1 gap-6 lg:grid-cols-4">
+          <div class="space-y-6 lg:col-span-3">
             <UCard :ui="{ body: 'sm:p-0 p-0' }">
               <template #header>
                 <div class="flex items-center justify-between">
-                  <h2 class="text-lg font-semibold">Articles de la commande</h2>
+                  <h2 class="font-semibold text-sm">Articles de la commande</h2>
                   <UButton size="sm" icon="i-heroicons-plus" @click="showAddProduct = !showAddProduct">
                     Ajouter un produit
                   </UButton>
@@ -317,21 +393,26 @@ watch(searchProduct, () => {
                       <div v-if="editingItem === item.id" class="flex items-center gap-2">
                         <UInput
                           type="number"
-                        :model-value="quantityDrafts[item.id] ?? item.quantity"
+                          :model-value="quantityDrafts[item.id] ?? item.quantity"
                           min="1"
                           class="w-20"
-                        @update:model-value="(val) => (quantityDrafts[item.id] = Number(val))" />
-                      <UButton size="xs" color="primary" @click="saveEditingQuantity(item.id)">Enregistrer</UButton>
-                      <UButton size="xs" color="neutral" @click="cancelEditingQuantity(item.id)">Annuler</UButton>
+                          @update:model-value="(val) => (quantityDrafts[item.id] = Number(val))" />
+                        <UButton size="xs" color="primary" @click="saveEditingQuantity(item.id)">Enregistrer</UButton>
+                        <UButton size="xs" color="neutral" @click="cancelEditingQuantity(item.id)">Annuler</UButton>
                       </div>
 
                       <div v-else class="flex items-center gap-2 flex-1">
-                      <UButton
-                        size="xs"
-                        variant="ghost"
-                        icon="i-heroicons-pencil"
-                        @click="startEditingQuantity(item.id, item.quantity)" />
-                        <UButton size="xs" variant="ghost" color="error" icon="i-heroicons-trash" @click="askRemoveItem(item.id)" />
+                        <UButton
+                          size="xs"
+                          variant="ghost"
+                          icon="i-heroicons-pencil"
+                          @click="startEditingQuantity(item.id, item.quantity)" />
+                        <UButton
+                          size="xs"
+                          variant="ghost"
+                          color="error"
+                          icon="i-heroicons-trash"
+                          @click="askRemoveItem(item.id)" />
                       </div>
 
                       <p class="text-right font-semibold">{{ getItemTotalLabel(item) }}</p>
@@ -349,7 +430,7 @@ watch(searchProduct, () => {
                   <span class="text-gray-600">Livraison</span>
                   <span class="font-medium">{{ getOrderShippingLabel(order) }}</span>
                 </div>
-                <div class="flex justify-between border-t border-neutral-200 pt-2 text-lg font-semibold">
+                <div class="flex justify-between border-t border-neutral-200 pt-2 font-semibold">
                   <span>Total</span>
                   <span>{{ getOrderTotalLabel(order) }}</span>
                 </div>
@@ -357,10 +438,10 @@ watch(searchProduct, () => {
             </UCard>
           </div>
 
-          <div class="space-y-6">
+          <div class="space-y-6 sticky top-0 self-start">
             <UCard>
               <template #header>
-                <h2 class="text-lg font-semibold">Informations client</h2>
+                <h2 class="font-semibold text-sm">Informations client</h2>
               </template>
 
               <div class="space-y-2">
@@ -383,7 +464,7 @@ watch(searchProduct, () => {
 
             <UCard>
               <template #header>
-                <h2 class="text-lg font-semibold">Details de livraison</h2>
+                <h2 class="font-semibold text-sm">Details de livraison</h2>
               </template>
 
               <UForm :schema="detailsSchema" :state="detailsState" @submit="onDetailsSubmit">
@@ -411,7 +492,7 @@ watch(searchProduct, () => {
 
             <UCard>
               <template #header>
-                <h2 class="text-lg font-semibold">Details de paiement</h2>
+                <h2 class="font-semibold text-sm">Details de paiement</h2>
               </template>
 
               <div class="space-y-3">
@@ -429,8 +510,11 @@ watch(searchProduct, () => {
                     label-key="label"
                     value-key="value"
                     class="w-full"
-                    @update:model-value="(val) => updateStatus(val as string | undefined)" />
+                    @update:model-value="(val) => onStatusChange(val as string | undefined)" />
                 </div>
+                <UButton color="error" variant="soft" icon="i-lucide-trash-2" block @click="askDeleteOrder">
+                  Supprimer la commande
+                </UButton>
               </div>
             </UCard>
           </div>
@@ -459,6 +543,40 @@ watch(searchProduct, () => {
       <div class="flex justify-end gap-2">
         <UButton color="neutral" variant="outline" label="Annuler" @click="closeRemoveModal" />
         <UButton color="error" label="Supprimer" @click="confirmRemoveItem" />
+      </div>
+    </template>
+  </UModal>
+
+  <UModal v-model:open="confirmStatusModalOpen" title="Confirmer le changement de statut" @close="closeConfirmStatusModal">
+    <template #body>
+      <p class="text-sm text-neutral-600 mb-3">Confirmer va déduire le stock des produits de cette commande.</p>
+      <div class="space-y-2 max-h-64 overflow-auto">
+        <div v-for="(item, idx) in confirmPreviewItems" :key="idx" class="rounded border border-neutral-200 p-2 text-sm">
+          <p class="font-medium">{{ item.product_name }}</p>
+          <p class="text-neutral-600">
+            Commandé: {{ item.ordered_quantity }} · Stock: {{ item.stock_quantity ?? "Non suivi" }} · Reste:
+            {{ item.remaining_stock ?? "N/A" }}
+          </p>
+          <p v-if="!item.has_enough_stock" class="text-error-600 text-xs mt-1">Stock insuffisant pour ce produit.</p>
+        </div>
+      </div>
+    </template>
+    <template #footer>
+      <div class="flex justify-end gap-2">
+        <UButton color="neutral" variant="outline" label="Annuler" @click="closeConfirmStatusModal" />
+        <UButton color="primary" label="Confirmer le statut" :disabled="!confirmCanProceed" @click="confirmStatusUpdate" />
+      </div>
+    </template>
+  </UModal>
+
+  <UModal v-model:open="deleteOrderModalOpen" title="Supprimer la commande" @close="closeDeleteOrderModal">
+    <template #body>
+      <p class="text-sm text-neutral-600">Cette action est irréversible. Voulez-vous vraiment supprimer cette commande ?</p>
+    </template>
+    <template #footer>
+      <div class="flex justify-end gap-2">
+        <UButton color="neutral" variant="outline" label="Annuler" @click="closeDeleteOrderModal" />
+        <UButton color="error" label="Supprimer" @click="confirmDeleteOrder" />
       </div>
     </template>
   </UModal>

@@ -46,6 +46,7 @@ const schema = z.object({
   status: z.enum(["active", "inactive", "draft"]),
   is_featured: z.boolean(),
   position: z.number(),
+  section: z.enum(["selections", "new-arrival", "best-seller"]).optional(),
 });
 
 type Schema = z.output<typeof schema>;
@@ -65,6 +66,7 @@ const state = reactive<Partial<z.infer<typeof schema>>>({
   status: "draft",
   is_featured: false,
   position: 0,
+  section: undefined,
 });
 
 const formRef = useTemplateRef<{
@@ -99,6 +101,10 @@ watch(
     state.status = p.status || "draft";
     state.is_featured = p.is_featured || false;
     state.position = p.position ?? 0;
+    state.section =
+      p.section === "selections" || p.section === "new-arrival" || p.section === "best-seller"
+        ? p.section
+        : undefined;
     if (p.images?.length) {
       uploadedImages.value = p.images.map((url: string) => ({ id: 0, url }));
     }
@@ -155,6 +161,13 @@ const stockStatusOptions = [
   { label: "En stock", value: "in_stock" },
   { label: "Rupture de stock", value: "out_of_stock" },
   { label: "Pré-commande", value: "preorder" },
+];
+
+const landingSectionOptions: { label: string; value: "selections" | "new-arrival" | "best-seller" | undefined }[] = [
+  { label: "Aucune", value: undefined },
+  { label: "Nos sélections", value: "selections" },
+  { label: "Nouvel arrivage", value: "new-arrival" },
+  { label: "Best seller", value: "best-seller" },
 ];
 
 const statusDotClass = computed(() => {
@@ -247,6 +260,7 @@ async function onSubmit(event: { data: Schema }) {
         status: data.status,
         is_featured: data.is_featured,
         position: data.position,
+        section: data.section === undefined ? null : data.section,
         upload_ids: uploadedImages.value.map((img) => img.id).filter((id) => id > 0),
       },
     });
@@ -271,14 +285,6 @@ function submitForm() {
   <UDashboardPanel>
     <template #header>
       <UDashboardNavbar :title="productData?.title || 'Modifier le produit'">
-        <template #left>
-          <UButton
-            icon="i-lucide-arrow-left"
-            color="neutral"
-            variant="ghost"
-            to="/dashboard/products"
-            aria-label="Retour aux produits" />
-        </template>
         <template #right>
           <div class="flex items-center gap-2">
             <UButton color="neutral" variant="outline" label="Ignorer" to="/dashboard/products" />
@@ -289,8 +295,15 @@ function submitForm() {
     </template>
 
     <template #body>
+      <div class="mb-2">
+        <NuxtLink to="/dashboard/products" class="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
+          <UIcon name="i-heroicons-arrow-left" class="h-4 w-4" />
+          Retour aux produits
+        </NuxtLink>
+      </div>
+
       <UForm ref="productForm" :schema="schema" :state="state" class="w-full" @submit="onSubmit">
-        <div class="flex gap-6 max-w-[1200px] mx-auto items-start">
+        <div class="flex gap-6 mx-auto items-start">
           <!-- ── LEFT COLUMN ── -->
           <div class="flex-1 min-w-0 space-y-4">
             <!-- Title & Description -->
@@ -476,7 +489,7 @@ function submitForm() {
               <template #header>
                 <h3 class="text-sm font-semibold text-neutral-800">Organisation</h3>
               </template>
-                <div class="space-y-3">
+              <div class="space-y-3">
                 <UFormField label="Marque" name="brand_id" required class="w-full">
                   <USelectMenu
                     v-model="brandIdModel"
@@ -515,6 +528,20 @@ function submitForm() {
                     label-key="label"
                     value-key="value"
                     :disabled="state.category_id == null || !filteredSubcategories.length" />
+                </UFormField>
+                <UFormField
+                  label="Bloc page d'accueil"
+                  name="section"
+                  help="Où afficher ce produit dans le carrousel (produits actifs uniquement)"
+                  class="w-full">
+                  <USelect
+                    v-model="state.section"
+                    :items="landingSectionOptions"
+                    placeholder="Aucune"
+                    size="md"
+                    class="w-full"
+                    label-key="label"
+                    value-key="value" />
                 </UFormField>
               </div>
             </UCard>

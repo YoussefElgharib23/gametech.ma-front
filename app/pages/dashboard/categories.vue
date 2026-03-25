@@ -232,30 +232,32 @@ async function confirmDelete() {
             </UBadge>
           </template>
           <template #actions-cell="{ row }">
-            <div class="bg-neutral-50 rounded-lg border border-muted p-1 inline-flex items-center justify-end gap-1">
+            <div class="inline-flex items-center justify-end gap-1 rounded-lg border border-neutral-200 bg-neutral-50 p-1">
               <UTooltip :delay-duration="0" text="Sous-catégories">
                 <UButton
                   icon="i-lucide-folder-tree"
                   color="neutral"
-                  variant="soft"
+                  variant="ghost"
                   size="xs"
                   aria-label="Sous-catégories"
                   :to="`/dashboard/subcategories?category_id=${row.original.id}`" />
               </UTooltip>
+              <USeparator orientation="vertical" class="h-4" />
               <UTooltip :delay-duration="0" text="Modifier">
                 <UButton
                   icon="i-lucide-pencil"
                   color="neutral"
-                  variant="soft"
+                  variant="ghost"
                   size="xs"
                   aria-label="Modifier"
                   @click="openEdit(row.original)" />
               </UTooltip>
+              <USeparator orientation="vertical" class="h-4" />
               <UTooltip :delay-duration="0" text="Supprimer">
                 <UButton
                   icon="i-lucide-trash-2"
                   color="error"
-                  variant="soft"
+                  variant="ghost"
                   size="xs"
                   aria-label="Supprimer"
                   @click="openDelete(row.original)" />

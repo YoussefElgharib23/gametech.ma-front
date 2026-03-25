@@ -2,6 +2,47 @@
 definePageMeta({
   layout: "dashboard",
 });
+
+type OverviewResponse = {
+  cards: {
+    sales_today: number;
+    sales_today_label: string;
+    pending_orders: number;
+    out_of_stock_products: number;
+    new_customers_this_month: number;
+  };
+  recent_orders: Array<{
+    id: number;
+    uid: string;
+    status: string;
+    customer_name: string;
+    total: number;
+    total_label: string;
+    created_at: string;
+  }>;
+};
+
+const { data } = await useAPIFetch<OverviewResponse>("/dashboard/overview");
+
+const cards = computed(() => data.value?.cards);
+const recentOrders = computed(() => data.value?.recent_orders ?? []);
+
+const statusLabel = (status: string) => {
+  switch (status) {
+    case "new":
+      return "Nouveau";
+    case "confirmed":
+      return "Confirmé";
+    case "delivered":
+      return "Livré";
+    case "returned":
+      return "Retourné";
+    case "cancelled":
+      return "Annulé";
+    default:
+      return status;
+  }
+};
 </script>
 
 <template>
@@ -15,7 +56,7 @@ definePageMeta({
                 <p class="text-xs font-medium text-neutral-500">
                   Ventes du jour
                 </p>
-                <p class="mt-1 text-2xl font-semibold tracking-tight">0 MAD</p>
+                <p class="mt-1 text-2xl font-semibold tracking-tight">{{ cards?.sales_today_label ?? "0 MAD" }}</p>
               </div>
               <UIcon
                 name="i-lucide-shopping-bag"
@@ -30,7 +71,7 @@ definePageMeta({
                 <p class="text-xs font-medium text-neutral-500">
                   Commandes en attente
                 </p>
-                <p class="mt-1 text-2xl font-semibold tracking-tight">0</p>
+                <p class="mt-1 text-2xl font-semibold tracking-tight">{{ cards?.pending_orders ?? 0 }}</p>
               </div>
               <UIcon
                 name="i-lucide-clipboard-list"
@@ -45,7 +86,7 @@ definePageMeta({
                 <p class="text-xs font-medium text-neutral-500">
                   Produits en rupture
                 </p>
-                <p class="mt-1 text-2xl font-semibold tracking-tight">0</p>
+                <p class="mt-1 text-2xl font-semibold tracking-tight">{{ cards?.out_of_stock_products ?? 0 }}</p>
               </div>
               <UIcon
                 name="i-lucide-package-x"
@@ -60,7 +101,7 @@ definePageMeta({
                 <p class="text-xs font-medium text-neutral-500">
                   Nouveaux clients
                 </p>
-                <p class="mt-1 text-2xl font-semibold tracking-tight">0</p>
+                <p class="mt-1 text-2xl font-semibold tracking-tight">{{ cards?.new_customers_this_month ?? 0 }}</p>
               </div>
               <UIcon name="i-lucide-users" class="h-6 w-6 text-primary-600" />
             </div>
@@ -80,13 +121,27 @@ definePageMeta({
                   size="xs"
                   label="Voir tout"
                   icon="i-lucide-arrow-right"
+                  to="/dashboard/orders"
                 />
               </div>
             </template>
 
             <ul class="space-y-3 text-sm">
-              <li class="flex items-center justify-between text-neutral-500">
+              <li v-if="!recentOrders.length" class="flex items-center justify-between text-neutral-500">
                 <span>Aucune activité récente pour le moment.</span>
+              </li>
+              <li
+                v-for="order in recentOrders"
+                :key="order.id"
+                class="flex items-center justify-between gap-3 text-neutral-700"
+              >
+                <div class="min-w-0">
+                  <p class="truncate font-medium">
+                    #{{ order.uid.substring(0, 8) }} - {{ order.customer_name }}
+                  </p>
+                  <p class="text-xs text-neutral-500">{{ order.created_at }} · {{ statusLabel(order.status) }}</p>
+                </div>
+                <span class="whitespace-nowrap font-medium">{{ order.total_label }}</span>
               </li>
             </ul>
           </UCard>
@@ -137,6 +192,7 @@ definePageMeta({
                 variant="soft"
                 icon="i-lucide-users"
                 label="Voir les clients"
+                to="/dashboard/customers"
               />
             </div>
           </UCard>

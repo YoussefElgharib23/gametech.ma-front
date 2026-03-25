@@ -1,5 +1,76 @@
+<script lang="ts">
+export type ProductLandingTab = "selections" | "new-arrival" | "best-seller";
+
+export interface LandingProductCard {
+  id: number;
+  slug: string;
+  title: string;
+  image: string | null;
+  stockStatus: string;
+  currentPrice: string;
+  oldPrice?: string | null;
+}
+
+export interface LandingProductsBySection {
+  selections: LandingProductCard[];
+  "new-arrival": LandingProductCard[];
+  "best-seller": LandingProductCard[];
+}
+</script>
+
 <script setup lang="ts">
-type TabType = "selections" | "new-arrival" | "best-seller";
+type TabType = ProductLandingTab;
+
+const props = defineProps<{
+  /** When omitted (e.g. dashboard preview), built-in demo data is used. */
+  landingProducts?: LandingProductsBySection;
+}>();
+
+const demoImage =
+  "https://pcgameragadir.ma/storage/uploads/products/TlF3g1GFIpyjcKALFS0rQz13SnqAaCVMfRJXTxjs_small.jpg";
+
+function demoCard(
+  id: number,
+  slug: string,
+  title: string,
+  currentPrice: string,
+  oldPrice?: string,
+): LandingProductCard {
+  return {
+    id,
+    slug,
+    title,
+    image: demoImage,
+    stockStatus: "EN STOCK",
+    currentPrice,
+    oldPrice: oldPrice ?? undefined,
+  };
+}
+
+const builtInDemo = (): LandingProductsBySection => ({
+  selections: [
+    demoCard(1, "demo-ryzen", "AMD Ryzen 9 5950X 16 Cores 32 Threads", "4 999 MAD", "5 499 MAD"),
+    demoCard(2, "demo-i7", "Intel Core i7-13700K 16 Cores", "3 699 MAD", "4 400 MAD"),
+    demoCard(3, "demo-ram", "Corsair Vengeance RGB DDR5 32GB 6000MHz", "1 199 MAD"),
+    demoCard(4, "demo-gpu", "NVIDIA GeForce RTX 4070 Ti 12GB", "8 399 MAD", "9 199 MAD"),
+    demoCard(5, "demo-ssd", "Samsung 990 Pro 1TB NVMe Gen4", "899 MAD", "999 MAD"),
+    demoCard(6, "demo-rx", "AMD Radeon RX 7900 XTX 24GB", "10 799 MAD", "12 200 MAD"),
+  ],
+  "new-arrival": [
+    demoCard(21, "demo-7800x3d", "AMD Ryzen 7 7800X3D 8 Cores 3D V-Cache", "3 299 MAD", "3 599 MAD"),
+    demoCard(22, "demo-4070s", "Gigabyte AORUS RTX 4070 Super", "6 499 MAD", "6 899 MAD"),
+    demoCard(23, "demo-ddr5", "Kingston Fury Beast DDR5 16GB 5600MHz", "599 MAD"),
+    demoCard(24, "demo-b760", "ASUS TUF Gaming B760-Plus WIFI", "1 799 MAD", "2 199 MAD"),
+  ],
+  "best-seller": [
+    demoCard(41, "demo-5950x", "AMD Ryzen 9 5950X 16 Cores 32 Threads", "4 799 MAD", "5 299 MAD"),
+    demoCard(42, "demo-4070", "NVIDIA GeForce RTX 4070 12GB", "5 999 MAD", "6 499 MAD"),
+    demoCard(43, "demo-hx", "HyperX Fury DDR4 32GB 3200MHz", "699 MAD"),
+    demoCard(44, "demo-980", "Samsung 980 Pro 500GB NVMe", "549 MAD", "649 MAD"),
+  ],
+});
+
+const data = computed(() => (props.landingProducts !== undefined ? props.landingProducts : builtInDemo()));
 
 const activeTab = ref<string>("selections");
 
@@ -9,329 +80,39 @@ const tabs = [
   { value: "best-seller", label: "Best seller", icon: "i-lucide-trophy" },
 ];
 
-const productImage =
-  "https://pcgameragadir.ma/storage/uploads/products/TlF3g1GFIpyjcKALFS0rQz13SnqAaCVMfRJXTxjs_small.jpg";
-
-const selectionsProducts = ref([
-  {
-    id: 1,
-    image: productImage,
-    stockStatus: "EN STOCK",
-    title: "AMD Ryzen 9 5950X 16 Cores 32 Threads",
-    currentPrice: "4 999 MAD",
-    oldPrice: "5 499 MAD",
-  },
-  {
-    id: 2,
-    image: productImage,
-    stockStatus: "EN STOCK",
-    title: "Intel Core i7-13700K 16 Cores",
-    currentPrice: "3 699 MAD",
-    oldPrice: "4 400 MAD",
-  },
-  {
-    id: 3,
-    image: productImage,
-    stockStatus: "EN STOCK",
-    title: "Corsair Vengeance RGB DDR5 32GB 6000MHz",
-    currentPrice: "1 199 MAD",
-  },
-  {
-    id: 4,
-    image: productImage,
-    stockStatus: "EN STOCK",
-    title: "NVIDIA GeForce RTX 4070 Ti 12GB",
-    currentPrice: "8 399 MAD",
-    oldPrice: "9 199 MAD",
-  },
-  {
-    id: 5,
-    image: productImage,
-    stockStatus: "EN STOCK",
-    title: "Samsung 990 Pro 1TB NVMe Gen4",
-    currentPrice: "899 MAD",
-    oldPrice: "999 MAD",
-  },
-  {
-    id: 6,
-    image: productImage,
-    stockStatus: "EN STOCK",
-    title: "AMD Radeon RX 7900 XTX 24GB",
-    currentPrice: "10 799 MAD",
-    oldPrice: "12 200 MAD",
-  },
-  {
-    id: 7,
-    image: productImage,
-    stockStatus: "EN STOCK",
-    title: "Noctua NH-D15 chromax.black",
-    currentPrice: "679 MAD",
-  },
-  {
-    id: 8,
-    image: productImage,
-    stockStatus: "EN STOCK",
-    title: "MSI MAG B650 TOMAHAWK WIFI",
-    currentPrice: "1 899 MAD",
-  },
-  {
-    id: 9,
-    image: productImage,
-    stockStatus: "EN STOCK",
-    title: "Corsair RM850x 850W 80+ Gold",
-    currentPrice: "1 299 MAD",
-  },
-  {
-    id: 10,
-    image: productImage,
-    stockStatus: "EN STOCK",
-    title: "G.Skill Trident Z5 RGB DDR5 32GB",
-    currentPrice: "2 099 MAD",
-  },
-  {
-    id: 11,
-    image: productImage,
-    stockStatus: "EN STOCK",
-    title: "WD Black SN850X 2TB NVMe",
-    currentPrice: "1 699 MAD",
-    oldPrice: "1 899 MAD",
-  },
-  {
-    id: 12,
-    image: productImage,
-    stockStatus: "EN STOCK",
-    title: "ASUS ROG Strix RTX 4080 OC",
-    currentPrice: "14 999 MAD",
-  },
-]);
-
-const newArrivalProducts = ref([
-  {
-    id: 21,
-    image: productImage,
-    stockStatus: "EN STOCK",
-    title: "AMD Ryzen 7 7800X3D 8 Cores 3D V-Cache",
-    currentPrice: "3 299 MAD",
-    oldPrice: "3 599 MAD",
-  },
-  {
-    id: 22,
-    image: productImage,
-    stockStatus: "EN STOCK",
-    title: "Gigabyte AORUS RTX 4070 Super",
-    currentPrice: "6 499 MAD",
-    oldPrice: "6 899 MAD",
-  },
-  {
-    id: 23,
-    image: productImage,
-    stockStatus: "EN STOCK",
-    title: "Kingston Fury Beast DDR5 16GB 5600MHz",
-    currentPrice: "599 MAD",
-  },
-  {
-    id: 24,
-    image: productImage,
-    stockStatus: "EN STOCK",
-    title: "ASUS TUF Gaming B760-Plus WIFI",
-    currentPrice: "1 799 MAD",
-    oldPrice: "2 199 MAD",
-  },
-  {
-    id: 25,
-    image: productImage,
-    stockStatus: "EN STOCK",
-    title: "Be Quiet! Dark Rock Pro 4",
-    currentPrice: "899 MAD",
-    oldPrice: "999 MAD",
-  },
-  {
-    id: 26,
-    image: productImage,
-    stockStatus: "EN STOCK",
-    title: "Seagate FireCuda 530 1TB NVMe",
-    currentPrice: "1 099 MAD",
-  },
-  {
-    id: 27,
-    image: productImage,
-    stockStatus: "EN STOCK",
-    title: "EVGA SuperNOVA 1000 G6 80+ Gold",
-    currentPrice: "1 899 MAD",
-    oldPrice: "2 099 MAD",
-  },
-  {
-    id: 28,
-    image: productImage,
-    stockStatus: "EN STOCK",
-    title: "AMD Ryzen 5 7600X 6 Cores",
-    currentPrice: "2 199 MAD",
-  },
-  {
-    id: 29,
-    image: productImage,
-    stockStatus: "EN STOCK",
-    title: "MSI GeForce RTX 4060 Ti GAMING X",
-    currentPrice: "3 799 MAD",
-    oldPrice: "4 099 MAD",
-  },
-  {
-    id: 30,
-    image: productImage,
-    stockStatus: "EN STOCK",
-    title: "Lian Li O11 Dynamic EVO",
-    currentPrice: "1 499 MAD",
-    oldPrice: "1 699 MAD",
-  },
-  {
-    id: 31,
-    image: productImage,
-    stockStatus: "EN STOCK",
-    title: "Logitech G Pro X Superlight 2",
-    currentPrice: "999 MAD",
-  },
-  {
-    id: 32,
-    image: productImage,
-    stockStatus: "EN STOCK",
-    title: 'ASUS ROG Swift PG27AQDM 27" OLED',
-    currentPrice: "8 799 MAD",
-    oldPrice: "9 999 MAD",
-  },
-]);
-
-const bestSellerProducts = ref([
-  {
-    id: 41,
-    image: productImage,
-    stockStatus: "EN STOCK",
-    title: "AMD Ryzen 9 5950X 16 Cores 32 Threads",
-    currentPrice: "4 799 MAD",
-    oldPrice: "5 299 MAD",
-  },
-  {
-    id: 42,
-    image: productImage,
-    stockStatus: "EN STOCK",
-    title: "NVIDIA GeForce RTX 4070 12GB",
-    currentPrice: "5 999 MAD",
-    oldPrice: "6 499 MAD",
-  },
-  {
-    id: 43,
-    image: productImage,
-    stockStatus: "EN STOCK",
-    title: "HyperX Fury DDR4 32GB 3200MHz",
-    currentPrice: "699 MAD",
-  },
-  {
-    id: 44,
-    image: productImage,
-    stockStatus: "EN STOCK",
-    title: "Samsung 980 Pro 500GB NVMe",
-    currentPrice: "549 MAD",
-    oldPrice: "649 MAD",
-  },
-  {
-    id: 45,
-    image: productImage,
-    stockStatus: "EN STOCK",
-    title: "Cooler Master Hyper 212 RGB",
-    currentPrice: "349 MAD",
-    oldPrice: "399 MAD",
-  },
-  {
-    id: 46,
-    image: productImage,
-    stockStatus: "EN STOCK",
-    title: "Razer DeathAdder V3 Pro",
-    currentPrice: "799 MAD",
-  },
-  {
-    id: 47,
-    image: productImage,
-    stockStatus: "EN STOCK",
-    title: "ASUS ROG Maximus Z790 Hero",
-    currentPrice: "4 299 MAD",
-    oldPrice: "4 599 MAD",
-  },
-  {
-    id: 48,
-    image: productImage,
-    stockStatus: "EN STOCK",
-    title: "Corsair iCUE H150i Elite LCD",
-    currentPrice: "2 199 MAD",
-  },
-  {
-    id: 49,
-    image: productImage,
-    stockStatus: "EN STOCK",
-    title: "Intel Core i5-13600K 14 Cores",
-    currentPrice: "2 899 MAD",
-    oldPrice: "3 199 MAD",
-  },
-  {
-    id: 50,
-    image: productImage,
-    stockStatus: "EN STOCK",
-    title: "MSI GeForce RTX 4090 GAMING X",
-    currentPrice: "22 999 MAD",
-    oldPrice: "24 499 MAD",
-  },
-  {
-    id: 51,
-    image: productImage,
-    stockStatus: "EN STOCK",
-    title: "NZXT H7 Flow Mid-Tower",
-    currentPrice: "1 299 MAD",
-  },
-  {
-    id: 52,
-    image: productImage,
-    stockStatus: "EN STOCK",
-    title: "SteelSeries Apex Pro TKL",
-    currentPrice: "1 499 MAD",
-    oldPrice: "1 699 MAD",
-  },
-]);
-
 const currentProducts = computed(() => {
   switch (activeTab.value as TabType) {
     case "selections":
-      return selectionsProducts.value;
+      return data.value.selections;
     case "new-arrival":
-      return newArrivalProducts.value;
+      return data.value["new-arrival"];
     case "best-seller":
-      return bestSellerProducts.value;
+      return data.value["best-seller"];
     default:
-      return selectionsProducts.value;
+      return data.value.selections;
   }
 });
 
-const firstRowProducts = computed(() => {
-  return currentProducts.value.slice(0, 6);
-});
+const firstRowProducts = computed(() => currentProducts.value.slice(0, 6));
 
-const secondRowProducts = computed(() => {
-  return currentProducts.value.slice(6, 12);
-});
+const secondRowProducts = computed(() => currentProducts.value.slice(6, 12));
 
-const carouselRow1 = useTemplateRef<{ emblaApi: any }>("carouselRow1");
-const carouselRow2 = useTemplateRef<{ emblaApi: any }>("carouselRow2");
+const carouselRow1 = useTemplateRef<{ emblaApi: unknown }>("carouselRow1");
+const carouselRow2 = useTemplateRef<{ emblaApi: unknown }>("carouselRow2");
 
 const scrollPrev = () => {
-  carouselRow1.value?.emblaApi?.scrollPrev();
-  carouselRow2.value?.emblaApi?.scrollPrev();
+  (carouselRow1.value as { emblaApi?: { scrollPrev: () => void } })?.emblaApi?.scrollPrev();
+  (carouselRow2.value as { emblaApi?: { scrollPrev: () => void } })?.emblaApi?.scrollPrev();
 };
 
 const scrollNext = () => {
-  carouselRow1.value?.emblaApi?.scrollNext();
-  carouselRow2.value?.emblaApi?.scrollNext();
+  (carouselRow1.value as { emblaApi?: { scrollNext: () => void } })?.emblaApi?.scrollNext();
+  (carouselRow2.value as { emblaApi?: { scrollNext: () => void } })?.emblaApi?.scrollNext();
 };
 </script>
 
 <template>
-  <UContainer class="py-8">
+  <UContainer v-if="currentProducts.length" class="py-8">
     <!-- Tab Navigation -->
     <div class="flex items-center justify-center mb-6">
       <UButton
@@ -385,18 +166,19 @@ const scrollNext = () => {
       >
         <div class="py-2">
           <ProductCard
-            :image="item.image"
+            :to="`/products/${item.slug}`"
+            :image="item.image ?? ''"
             :stock-status="item.stockStatus"
             :title="item.title"
             :current-price="item.currentPrice"
-            :old-price="item.oldPrice"
+            :old-price="item.oldPrice ?? ''"
           />
         </div>
       </UCarousel>
     </div>
 
     <!-- Second Row Carousel -->
-    <div>
+    <div v-if="secondRowProducts.length">
       <UCarousel
         ref="carouselRow2"
         v-slot="{ item }"
@@ -411,11 +193,12 @@ const scrollNext = () => {
       >
         <div class="py-2">
           <ProductCard
-            :image="item.image"
+            :to="`/products/${item.slug}`"
+            :image="item.image ?? ''"
             :stock-status="item.stockStatus"
             :title="item.title"
             :current-price="item.currentPrice"
-            :old-price="item.oldPrice"
+            :old-price="item.oldPrice ?? ''"
           />
         </div>
       </UCarousel>

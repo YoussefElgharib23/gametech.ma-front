@@ -9,9 +9,9 @@ const open = ref(false);
 const links = [
   [
     {
-      label: "Home",
+      label: "Accueil",
       icon: "i-lucide-house",
-      to: "/",
+      to: "/dashboard",
       onSelect: () => {
         open.value = false;
       },
@@ -52,6 +52,14 @@ const links = [
       label: "Commandes",
       icon: "i-lucide-shopping-cart",
       to: "/dashboard/orders",
+      onSelect: () => {
+        open.value = false;
+      },
+    },
+    {
+      label: "Clients",
+      icon: "i-lucide-users",
+      to: "/dashboard/customers",
       onSelect: () => {
         open.value = false;
       },
