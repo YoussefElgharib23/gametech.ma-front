@@ -125,52 +125,208 @@ const flashProducts = ref([
 </script>
 
 <template>
-  <UContainer class="py-8">
-    <div class="bg-neutral-300/20 rounded-lg p-6">
-      <div
-        class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-6 lg:mb-8"
-      >
-        <h2
-          class="text-3xl sm:text-4xl tracking-tighter font-extrabold order-2 lg:order-1"
-        >
-          Vente Flash
-        </h2>
-        <div
-          class="order-1 lg:order-2 flex flex-col items-center lg:items-end gap-1"
-        >
-          <span
-            class="text-xs font-medium text-neutral-600 uppercase tracking-wider"
-            >Se termine dans</span
-          >
-          <CountdownTimer :days="2" :hours="5" :minutes="12" :seconds="49" />
+  <section class="flash-section relative overflow-hidden bg-[#0b1a33]">
+    <!-- Background effects -->
+    <div class="flash-grid absolute inset-0 opacity-[0.04]" />
+    <div class="flash-glow-left" />
+    <div class="flash-glow-right" />
+    <div class="flash-glow-center" />
+
+    <!-- Accent line at top -->
+    <div
+      class="absolute top-0 inset-x-0 h-[2px] bg-linear-to-r from-transparent via-brand-accent-400 to-transparent opacity-50" />
+
+    <UContainer class="relative z-10 pt-10 pb-10 md:pt-12 md:pb-12">
+      <!-- Header row -->
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-6 mb-8 md:mb-10">
+        <!-- Left: title cluster -->
+        <div class="flex items-center gap-4">
+          <div class="relative shrink-0">
+            <div class="flash-bolt-ring" />
+            <div
+              class="size-14 md:size-16 rounded-2xl bg-brand-accent-500 flex items-center justify-center shadow-lg shadow-brand-accent-400/30">
+              <UIcon name="i-lucide-zap" class="text-[#0b1a33] text-2xl md:text-3xl" />
+            </div>
+          </div>
+
+          <div>
+            <span
+              class="inline-flex items-center gap-1.5 rounded-full bg-red-500/15 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-red-400 ring-1 ring-red-500/25 mb-2">
+              <span class="relative flex size-1.5">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+                <span class="relative inline-flex size-1.5 rounded-full bg-red-500" />
+              </span>
+              Offre limitée
+            </span>
+
+            <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white leading-none">
+              Vente
+              <span class="text-brand-accent-400">Flash</span>
+            </h2>
+            <p class="text-sm text-blue-300/70 mt-1 hidden sm:block">Des prix cassés, mais pas pour longtemps.</p>
+          </div>
+        </div>
+
+        <!-- Right: countdown -->
+        <div class="flex flex-col items-center md:items-end gap-2">
+          <span class="text-[11px] font-semibold text-blue-400/60 uppercase tracking-widest">Se termine dans</span>
+          <div class="flash-countdown-wrapper">
+            <CountdownTimer :days="2" :hours="5" :minutes="12" :seconds="49" />
+          </div>
         </div>
       </div>
 
-      <!-- Products Grid -->
-      <div class="grid grid-cols-5 gap-4">
-        <!-- First Row - 6 products -->
+      <!-- Products grid -->
+      <div class="flash-products grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 md:gap-4">
         <ProductCard
-          v-for="product in flashProducts.slice(0, 6)"
+          v-for="product in flashProducts.slice(0, 9)"
           :key="product.id"
           :image="product.image"
           :stock-status="product.stockStatus"
           :title="product.title"
           :current-price="product.currentPrice"
-          :old-price="product.oldPrice"
-        />
-
-        <!-- Second Row - 5 products + 1 "Voir plus" card -->
-        <ProductCard
-          v-for="product in flashProducts.slice(6, 9)"
-          :key="product.id"
-          :image="product.image"
-          :stock-status="product.stockStatus"
-          :title="product.title"
-          :current-price="product.currentPrice"
-          :old-price="product.oldPrice"
-        />
+          :old-price="product.oldPrice" />
         <ProductCardMore />
       </div>
-    </div>
-  </UContainer>
+    </UContainer>
+
+    <!-- Accent line at bottom -->
+    <div
+      class="absolute bottom-0 inset-x-0 h-[2px] bg-linear-to-r from-transparent via-brand-accent-400 to-transparent opacity-50" />
+  </section>
 </template>
+
+<style scoped>
+@reference "~/assets/css/main.css";
+
+.flash-grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.5) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.5) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.flash-glow-left {
+  @apply absolute rounded-full blur-3xl pointer-events-none;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, #38bdf8 0%, transparent 70%);
+  top: 0;
+  left: -100px;
+  opacity: 0.12;
+}
+
+.flash-glow-right {
+  @apply absolute rounded-full blur-3xl pointer-events-none;
+  width: 350px;
+  height: 350px;
+  background: radial-gradient(circle, #ef4444 0%, transparent 70%);
+  top: 0;
+  right: -80px;
+  opacity: 0.1;
+}
+
+.flash-glow-center {
+  @apply absolute rounded-full blur-3xl pointer-events-none;
+  width: 600px;
+  height: 600px;
+  background: radial-gradient(circle, #1e40af 0%, transparent 70%);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  opacity: 0.15;
+}
+
+.flash-bolt-ring {
+  @apply absolute -inset-1.5 rounded-2xl;
+  background: conic-gradient(
+    from 0deg,
+    var(--color-brand-accent-500),
+    transparent 25%,
+    transparent 75%,
+    var(--color-brand-accent-500)
+  );
+  opacity: 0.4;
+  animation: flash-spin 4s linear infinite;
+}
+
+@keyframes flash-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* ── Countdown overrides ── */
+.flash-countdown-wrapper :deep(.countdown) {
+  color: white;
+}
+
+.flash-countdown-wrapper :deep([role="timer"]) {
+  color: white;
+}
+
+.flash-countdown-wrapper :deep([role="timer"] > span) {
+  color: var(--color-brand-accent-400);
+}
+
+.flash-countdown-wrapper :deep([role="timer"] > div) {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(8px);
+}
+
+.flash-countdown-wrapper :deep([role="timer"] > div > .text-\[10px\]),
+.flash-countdown-wrapper :deep([role="timer"] > div > .text-xs) {
+  color: var(--color-brand-dark-200);
+}
+
+/* ── Product cards: dark theme overrides ── */
+.flash-products :deep(a) {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(8px);
+}
+
+.flash-products :deep(a:hover) {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.flash-products :deep(a .bg-white) {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.flash-products :deep(a h3) {
+  color: #f0f1f4;
+}
+
+.flash-products :deep(a .text-neutral-500) {
+  color: var(--color-brand-dark-300);
+}
+
+.flash-products :deep(a .text-neutral-400) {
+  color: var(--color-brand-dark-400);
+}
+
+.flash-products :deep(a .text-neutral-900) {
+  color: #f0f1f4;
+}
+
+.flash-products :deep(a .text-primary-700) {
+  color: var(--color-brand-accent-400);
+}
+
+/* "Voir plus" card */
+.flash-products :deep(> div:last-child) {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.flash-products :deep(> div:last-child .text-brand-dark-950) {
+  color: #f0f1f4;
+}
+
+.flash-products :deep(> div:last-child .bg-neutral-50) {
+  background: transparent;
+}
+</style>

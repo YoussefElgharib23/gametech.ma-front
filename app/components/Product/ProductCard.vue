@@ -119,7 +119,7 @@ onBeforeUnmount(() => {
           </span>
         </div>
         <UButton
-          class="mt-3 w-full h-10 text-sm"
+          class="mt-3 w-full h-10 text-sm cursor-pointer"
           :label="isOutOfStock ? 'Indisponible' : recentlyAdded ? 'Ajouté au panier' : 'Ajouter au panier'"
           :icon="isOutOfStock ? 'i-lucide-ban' : recentlyAdded ? 'i-lucide-check' : 'i-lucide-shopping-cart'"
           color="neutral"

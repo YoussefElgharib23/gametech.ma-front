@@ -65,35 +65,24 @@ const units = computed(() => [
 </script>
 
 <template>
-  <div
-    class="inline-flex items-stretch gap-1 sm:gap-2 text-neutral-900"
-    role="timer"
-    aria-live="polite"
-  >
+  <div class="inline-flex items-stretch gap-1 sm:gap-2 text-neutral-900" role="timer" aria-live="polite">
     <template v-for="(unit, i) in units" :key="unit.label">
       <span
         v-if="i"
         class="flex items-center justify-center px-0.5 sm:px-1 text-2xl sm:text-3xl font-medium text-neutral-500 select-none"
-        aria-hidden="true"
-        >:</span
-      >
+        aria-hidden="true">
+        :
+      </span>
       <div
-        class="bg-neutral-200/80 border border-neutral-300/80 rounded-lg flex flex-col items-center justify-center min-w-14 sm:min-w-16 py-2 px-2 sm:py-2.5 sm:px-3"
-      >
-        <span
-          class="countdown font-mono text-3xl sm:text-4xl tabular-nums leading-none"
-        >
-          <span
-            :style="{ '--value': unit.value, '--digits': 2 }"
-            :aria-label="pad2(unit.value)"
-          >
+        class="bg-neutral-200/80 border border-neutral-300/80 rounded-lg flex flex-col items-center justify-center min-w-14 sm:min-w-16 py-2 px-2 sm:py-2.5 sm:px-3">
+        <span class="countdown font-mono text-3xl sm:text-4xl tabular-nums leading-none">
+          <span :style="{ '--value': unit.value, '--digits': 2 }" :aria-label="pad2(unit.value)">
             {{ pad2(unit.value) }}
           </span>
         </span>
-        <span
-          class="text-[10px] sm:text-xs font-medium mt-1 sm:mt-1.5 uppercase tracking-wider opacity-80"
-          >{{ unit.label }}</span
-        >
+        <span class="text-[10px] sm:text-xs font-medium mt-1 sm:mt-1.5 uppercase tracking-wider">
+          {{ unit.label }}
+        </span>
       </div>
     </template>
   </div>
@@ -110,16 +99,8 @@ const units = computed(() => [
   --value-hundreds: round(to-zero, var(--value-v) / 100, 1);
   --value-tens: round(to-zero, mod(var(--value-v), 100) / 10, 1);
   --value-ones: mod(var(--value-v), 100);
-  --show-hundreds: clamp(
-    clamp(0, var(--digits, 1) - 2, 1),
-    var(--value-hundreds),
-    1
-  );
-  --show-tens: clamp(
-    clamp(0, var(--digits, 1) - 1, 1),
-    var(--value-tens) + var(--show-hundreds),
-    1
-  );
+  --show-hundreds: clamp(clamp(0, var(--digits, 1) - 2, 1), var(--value-hundreds), 1);
+  --show-tens: clamp(clamp(0, var(--digits, 1) - 1, 1), var(--value-tens) + var(--show-hundreds), 1);
   --first-digits: round(to-zero, var(--value-v) / 10, 1);
   height: 1em;
   width: calc(1ch + var(--show-tens) * 1ch + var(--show-hundreds) * 1ch);
