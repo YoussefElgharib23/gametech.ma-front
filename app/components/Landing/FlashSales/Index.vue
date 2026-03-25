@@ -125,16 +125,16 @@ const flashProducts = ref([
 </script>
 
 <template>
-  <section class="flash-section relative overflow-hidden bg-[#0b1a33]">
+  <section class="flash-section relative overflow-hidden bg-brand-dark-950">
     <!-- Background effects -->
-    <div class="flash-grid absolute inset-0 opacity-[0.04]" />
+    <div class="flash-grid absolute inset-0 opacity-[0.03]" />
     <div class="flash-glow-left" />
     <div class="flash-glow-right" />
     <div class="flash-glow-center" />
 
     <!-- Accent line at top -->
     <div
-      class="absolute top-0 inset-x-0 h-[2px] bg-linear-to-r from-transparent via-brand-accent-400 to-transparent opacity-50" />
+      class="absolute top-0 inset-x-0 h-[2px] bg-linear-to-r from-transparent via-brand-accent-500 to-transparent opacity-60" />
 
     <UContainer class="relative z-10 pt-10 pb-10 md:pt-12 md:pb-12">
       <!-- Header row -->
@@ -144,8 +144,8 @@ const flashProducts = ref([
           <div class="relative shrink-0">
             <div class="flash-bolt-ring" />
             <div
-              class="size-14 md:size-16 rounded-2xl bg-brand-accent-500 flex items-center justify-center shadow-lg shadow-brand-accent-400/30">
-              <UIcon name="i-lucide-zap" class="text-[#0b1a33] text-2xl md:text-3xl" />
+              class="size-14 md:size-16 rounded-2xl bg-brand-accent-500 flex items-center justify-center shadow-lg shadow-brand-accent-500/30">
+              <UIcon name="i-lucide-zap" class="text-brand-dark-950 text-2xl md:text-3xl" />
             </div>
           </div>
 
@@ -161,15 +161,15 @@ const flashProducts = ref([
 
             <h2 class="text-3xl sm:text-4xl font-extrabold tracking-tight text-white leading-none">
               Vente
-              <span class="text-brand-accent-400">Flash</span>
+              <span class="text-brand-accent-500">Flash</span>
             </h2>
-            <p class="text-sm text-blue-300/70 mt-1 hidden sm:block">Des prix cassés, mais pas pour longtemps.</p>
+            <p class="text-sm text-brand-dark-300 mt-1 hidden sm:block">Des prix cassés, mais pas pour longtemps.</p>
           </div>
         </div>
 
         <!-- Right: countdown -->
         <div class="flex flex-col items-center md:items-end gap-2">
-          <span class="text-[11px] font-semibold text-blue-400/60 uppercase tracking-widest">Se termine dans</span>
+          <span class="text-[11px] font-semibold text-brand-dark-400 uppercase tracking-widest">Se termine dans</span>
           <div class="flash-countdown-wrapper">
             <CountdownTimer :days="2" :hours="5" :minutes="12" :seconds="49" />
           </div>
@@ -192,7 +192,7 @@ const flashProducts = ref([
 
     <!-- Accent line at bottom -->
     <div
-      class="absolute bottom-0 inset-x-0 h-[2px] bg-linear-to-r from-transparent via-brand-accent-400 to-transparent opacity-50" />
+      class="absolute bottom-0 inset-x-0 h-[2px] bg-linear-to-r from-transparent via-brand-accent-500 to-transparent opacity-60" />
   </section>
 </template>
 
@@ -210,10 +210,10 @@ const flashProducts = ref([
   @apply absolute rounded-full blur-3xl pointer-events-none;
   width: 400px;
   height: 400px;
-  background: radial-gradient(circle, #38bdf8 0%, transparent 70%);
+  background: radial-gradient(circle, var(--color-brand-accent-500) 0%, transparent 70%);
   top: 0;
   left: -100px;
-  opacity: 0.12;
+  opacity: 0.10;
 }
 
 .flash-glow-right {
@@ -230,11 +230,11 @@ const flashProducts = ref([
   @apply absolute rounded-full blur-3xl pointer-events-none;
   width: 600px;
   height: 600px;
-  background: radial-gradient(circle, #1e40af 0%, transparent 70%);
+  background: radial-gradient(circle, var(--color-brand-accent-500) 0%, transparent 70%);
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  opacity: 0.15;
+  opacity: 0.04;
 }
 
 .flash-bolt-ring {

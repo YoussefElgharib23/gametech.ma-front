@@ -64,6 +64,14 @@ const links = [
         open.value = false;
       },
     },
+    {
+      label: "Paramètres",
+      icon: "i-lucide-settings",
+      to: "/dashboard/settings",
+      onSelect: () => {
+        open.value = false;
+      },
+    },
   ],
 ] satisfies NavigationMenuItem[][];
 
