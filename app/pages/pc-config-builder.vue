@@ -226,12 +226,12 @@ useSeoMeta({
                       :key="product.id"
                       class="flex items-center gap-3 px-4 py-2.5 border-b border-primary-100 last:border-b-0">
                       <div
-                        class="size-10 shrink-0 rounded-md bg-white border border-primary-100 flex items-center justify-center overflow-hidden">
+                        class="size-10 p-1 shrink-0 rounded-md bg-neutral-100 border border-primary-100 flex items-center justify-center overflow-hidden">
                         <NuxtImg
                           v-if="product.image"
                           :src="product.image"
                           :alt="product.title"
-                          class="size-full object-contain"
+                          class="size-full object-contain mix-blend-multiply"
                           loading="lazy" />
                         <UIcon v-else name="i-lucide-image" class="text-primary-300" />
                       </div>
