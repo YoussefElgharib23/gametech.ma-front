@@ -97,13 +97,10 @@ async function handleFileChange(side: SliderSideKey, file: File) {
     body.append("file", file);
     body.append("directory", "sliders");
 
-    const upload = await $apiFetch<{ id: number; url: string }>(
-      "/uploads/preview",
-      {
-        method: "POST",
-        body,
-      },
-    );
+    const upload = await $apiFetch<{ id: number; url: string }>("/uploads/preview", {
+      method: "POST",
+      body,
+    });
 
     item.uploadId = upload.id;
     item.imageUrl = upload.url;
@@ -119,11 +116,7 @@ async function handleFileChange(side: SliderSideKey, file: File) {
   }
 }
 
-const canSave = computed(() =>
-  Object.values(items.value).some(
-    (item) => item.sliderId && (item.uploadId || item.link),
-  ),
-);
+const canSave = computed(() => Object.values(items.value).some((item) => item.sliderId && (item.uploadId || item.link)));
 
 async function saveAll() {
   saving.value = true;
@@ -161,11 +154,10 @@ async function saveAll() {
     saving.value = false;
   }
 }
-
 </script>
 
 <template>
-  <UContainer>
+  <div class="max-w-[1360px] mx-auto px-4">
     <div class="grid grid-cols-8 gap-4 pt-12">
       <div class="col-span-2">
         <LandingSliderZone
@@ -178,8 +170,7 @@ async function saveAll() {
           root-class="min-h-[450px]"
           recommended-size="320×450 px"
           @update:link="items.left.link = $event"
-          @select-image="(file) => handleFileChange('left', file)"
-        />
+          @select-image="(file) => handleFileChange('left', file)" />
       </div>
 
       <div class="col-span-4">
@@ -193,8 +184,7 @@ async function saveAll() {
           root-class="min-h-[450px]"
           recommended-size="640×450 px"
           @update:link="items.center.link = $event"
-          @select-image="(file) => handleFileChange('center', file)"
-        />
+          @select-image="(file) => handleFileChange('center', file)" />
       </div>
 
       <div class="col-span-2 space-y-4">
@@ -209,8 +199,7 @@ async function saveAll() {
             root-class="min-h-[225px]"
             recommended-size="320×225 px"
             @update:link="items['right-top'].link = $event"
-            @select-image="(file) => handleFileChange('right-top', file)"
-          />
+            @select-image="(file) => handleFileChange('right-top', file)" />
         </div>
         <div>
           <LandingSliderZone
@@ -223,19 +212,14 @@ async function saveAll() {
             root-class="min-h-[225px]"
             recommended-size="320×225 px"
             @update:link="items['right-bottom'].link = $event"
-            @select-image="(file) => handleFileChange('right-bottom', file)"
-          />
+            @select-image="(file) => handleFileChange('right-bottom', file)" />
         </div>
       </div>
     </div>
 
-    <div
-      v-if="editable"
-      class="mt-4 flex items-center justify-end gap-3 border-t border-neutral-200 pt-4"
-    >
+    <div v-if="editable" class="mt-4 flex items-center justify-end gap-3 border-t border-neutral-200 pt-4">
       <span class="text-[11px] text-neutral-500">
-        Les modifications ne seront visibles sur la boutique qu'après
-        enregistrement.
+        Les modifications ne seront visibles sur la boutique qu'après enregistrement.
       </span>
       <UButton
         color="primary"
@@ -243,8 +227,7 @@ async function saveAll() {
         icon="i-lucide-save"
         :label="saving ? 'Enregistrement…' : 'Enregistrer les sliders'"
         :loading="saving"
-        @click="saveAll"
-      />
+        @click="saveAll" />
     </div>
-  </UContainer>
+  </div>
 </template>
