@@ -9,6 +9,14 @@ export default defineNuxtConfig({
     '@nuxtjs/i18n'
   ],
 
+  routeRules: {
+    '/': { prerender: false },
+    '/**': {
+      prerender: false,
+      cache: false
+    }
+  },
+
   colorMode: {
     preference: 'light',
     fallback: 'light'
@@ -46,4 +54,10 @@ export default defineNuxtConfig({
       }
     }
   },
+
+  routeRules: {
+    '/**': {
+      cache: false
+    }
+  }
 })
