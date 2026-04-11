@@ -7,9 +7,9 @@ useHead({
   },
 });
 
-const title = "Nuxt Starter Template";
+const title = "Gametech.ma – PC Gamer Maroc, Laptops & Accessoires Gaming | Livraison Rapide";
 const description =
-  "A production-ready starter template powered by Nuxt UI. Build beautiful, accessible, and performant applications in minutes, not hours.";
+  "Découvrez Gametech.ma, votre boutique tech au Maroc spécialisée en PC gamer, laptops puissants et accessoires gaming. Profitez de prix compétitifs, garantie, service après-vente et livraison rapide partout au Maroc.";
 
 useSeoMeta({
   title,

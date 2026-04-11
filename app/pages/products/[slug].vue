@@ -274,7 +274,7 @@ onBeforeUnmount(() => {
       <!-- Product layout: gallery + info -->
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-10 mb-12">
         <!-- Gallery -->
-        <div class="space-y-3 sticky top-12 self-start">
+        <div class="space-y-3 sm:sticky top-12 self-start">
           <div class="relative aspect-square rounded-xl border border-muted overflow-hidden">
             <div
               v-if="product.oldPrice && product.savingsLabel"

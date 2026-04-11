@@ -118,14 +118,15 @@ const scrollNext = () => categoryCarousel.value?.emblaApi?.scrollNext();
 </script>
 
 <template>
-  <UContainer v-if="showSection" class="py-8">
-    <div class="flex items-center justify-between mb-4">
+  <UContainer v-if="showSection" class="py-6 sm:py-8">
+    <div class="mb-3 flex items-center justify-end gap-2 sm:mb-4 lg:justify-between">
       <UTooltip text="Précédent" :delay-duration="0">
         <UButton
           icon="i-lucide-chevron-left"
           color="neutral"
           variant="ghost"
           aria-label="Précédent"
+          size="md"
           class="rounded-full"
           @click="scrollPrev" />
       </UTooltip>
@@ -135,34 +136,38 @@ const scrollNext = () => categoryCarousel.value?.emblaApi?.scrollNext();
           color="neutral"
           variant="ghost"
           aria-label="Suivant"
+          size="md"
           class="rounded-full"
           @click="scrollNext" />
       </UTooltip>
     </div>
-    <div class="flex gap-6 lg:gap-8">
-      <!-- Left: vertical category buttons -->
-      <div class="shrink-0 w-48 lg:w-56 flex flex-col gap-2">
+    <div class="flex flex-col gap-4 lg:flex-row lg:gap-8">
+      <!-- Categories: horizontal scroll on small screens, rail on lg+ -->
+      <div
+        class="-mx-4 flex shrink-0 flex-row gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:thin] lg:mx-0 lg:w-56 lg:flex-col lg:overflow-visible lg:px-0 lg:pb-0">
         <UButton
           v-for="cat in categoryTabs"
           :key="cat.value"
           :color="activeCategory === cat.value ? 'primary' : 'neutral'"
           :variant="activeCategory === cat.value ? 'solid' : 'outline'"
-          class="group w-full justify uppercase font-semibold"
-          size="xl"
+          class="group shrink-0 justify-center uppercase font-semibold whitespace-nowrap lg:w-full lg:whitespace-normal lg:justify-start lg:text-left"
+          size="md"
           @click="activeCategory = cat.value">
           <span
             :class="[
-              'flex shrink-0 items-center justify-center overflow-hidden transition-[width,opacity] duration-200',
+              'hidden shrink-0 items-center justify-center overflow-hidden transition-[width,opacity] duration-200 lg:flex',
               activeCategory === cat.value ? 'w-4 opacity-100' : 'w-0 opacity-0 group-hover:w-4 group-hover:opacity-100',
             ]">
             <UIcon name="i-lucide-chevron-right" class="size-4 shrink-0" />
           </span>
-          <span class="shrink-0">{{ cat.label }}</span>
+          <span class="max-w-[75vw] truncate sm:max-w-none lg:max-w-full lg:wrap-break-word lg:leading-snug">
+            {{ cat.label }}
+          </span>
         </UButton>
       </div>
 
-      <!-- Right: product carousel -->
-      <div class="flex-1 min-w-0">
+      <!-- Product carousel -->
+      <div class="min-w-0 flex-1">
         <UCarousel
           ref="categoryCarousel"
           v-slot="{ item }"
@@ -171,11 +176,11 @@ const scrollNext = () => categoryCarousel.value?.emblaApi?.scrollNext();
           :slides-to-scroll="1"
           :autoplay="{ delay: 4000 }"
           :ui="{
-            item: 'sm:basis-1/2 md:basis-1/3 lg:basis-1/4 shrink-0',
-            container: 'gap-1',
+            item: 'basis-1/2 md:basis-1/3 lg:basis-1/4 shrink-0',
+            container: 'gap-2 sm:gap-1',
             viewport: 'overflow-hidden',
           }">
-          <div class="py-2">
+          <div class="py-1 sm:py-2">
             <ProductCard
               :to="`/products/${item.slug}`"
               :image="item.image ?? ''"
@@ -187,8 +192,9 @@ const scrollNext = () => categoryCarousel.value?.emblaApi?.scrollNext();
         </UCarousel>
       </div>
     </div>
-    <div class="mt-6 flex justify-center">
+    <div class="mt-5 flex justify-center px-1 sm:mt-6">
       <UButton
+        class="w-full max-w-md sm:w-auto text-center justify-center"
         label="Voir tous les produits"
         trailing-icon="i-lucide-arrow-up-right"
         color="primary"

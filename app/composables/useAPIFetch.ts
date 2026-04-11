@@ -113,7 +113,6 @@ export default function <T>(
 
   return useFetch<T>(pathRef, {
     ...options,
-    // key: Math.random().toString(),
   });
 }
 

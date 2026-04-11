@@ -52,18 +52,10 @@ const hoveredSlug = ref<string | null>(null);
           :class="hoveredSlug && hoveredSlug !== brand.slug ? 'opacity-20 blur-xs' : 'opacity-100'"
           @mouseenter="hoveredSlug = brand.slug"
           @mouseleave="hoveredSlug = null">
-          <div class="group-hover:shadow-lg rounded-md overflow-hidden aspect-square h-22 flex items-center justify-center">
-            <NuxtImg
-              v-if="brand.image"
-              :src="brand.image"
-              :alt="brand.name"
-              class=""
-            />
-            <UIcon
-              v-else
-              name="i-lucide-image"
-              class="text-neutral-400 text-3xl"
-            />
+          <div
+            class="group-hover:shadow-lg rounded-md overflow-hidden aspect-square sm:h-22 h-18 flex items-center justify-center">
+            <NuxtImg v-if="brand.image" :src="brand.image" :alt="brand.name" class="" />
+            <UIcon v-else name="i-lucide-image" class="text-neutral-400 text-3xl" />
           </div>
           <span class="text-sm font-medium text-neutral-700 truncate">
             {{ brand.name }}

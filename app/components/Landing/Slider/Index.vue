@@ -157,9 +157,9 @@ async function saveAll() {
 </script>
 
 <template>
-  <div class="max-w-[1360px] mx-auto px-4">
-    <div class="grid grid-cols-8 gap-4 pt-12">
-      <div class="col-span-2">
+  <div class="max-w-[1360px] mx-auto px-3 sm:px-4">
+    <div class="grid grid-cols-1 gap-3 pt-6 sm:gap-4 sm:pt-10 lg:grid-cols-8 lg:pt-12">
+      <div class="order-2 col-span-full lg:order-0 lg:col-span-2 lg:block hidden">
         <LandingSliderZone
           side="left"
           :image-url="items.left.imageUrl"
@@ -167,13 +167,13 @@ async function saveAll() {
           :editable="editable"
           :uploading="items.left.uploading"
           label="Zone gauche"
-          root-class="min-h-[450px]"
+          root-class="min-h-[220px] sm:min-h-[300px] lg:min-h-[450px]"
           recommended-size="320×450 px"
           @update:link="items.left.link = $event"
           @select-image="(file) => handleFileChange('left', file)" />
       </div>
 
-      <div class="col-span-4">
+      <div class="order-1 col-span-full lg:order-0 lg:col-span-4">
         <LandingSliderZone
           side="center"
           :image-url="items.center.imageUrl"
@@ -181,13 +181,13 @@ async function saveAll() {
           :editable="editable"
           :uploading="items.center.uploading"
           label="Zone centrale"
-          root-class="min-h-[450px]"
+          root-class="min-h-[220px] sm:min-h-[320px] lg:min-h-[450px]"
           recommended-size="640×450 px"
           @update:link="items.center.link = $event"
           @select-image="(file) => handleFileChange('center', file)" />
       </div>
 
-      <div class="col-span-2 space-y-4">
+      <div class="order-3 col-span-full space-y-3 sm:space-y-4 lg:order-0 lg:col-span-2 lg:block hidden">
         <div>
           <LandingSliderZone
             side="right-top"
@@ -196,7 +196,7 @@ async function saveAll() {
             :editable="editable"
             :uploading="items['right-top'].uploading"
             label="Haut droite"
-            root-class="min-h-[225px]"
+            root-class="min-h-[160px] sm:min-h-[200px] lg:min-h-[225px]"
             recommended-size="320×225 px"
             @update:link="items['right-top'].link = $event"
             @select-image="(file) => handleFileChange('right-top', file)" />
@@ -209,7 +209,7 @@ async function saveAll() {
             :editable="editable"
             :uploading="items['right-bottom'].uploading"
             label="Bas droite"
-            root-class="min-h-[225px]"
+            root-class="min-h-[160px] sm:min-h-[200px] lg:min-h-[225px]"
             recommended-size="320×225 px"
             @update:link="items['right-bottom'].link = $event"
             @select-image="(file) => handleFileChange('right-bottom', file)" />
@@ -217,11 +217,14 @@ async function saveAll() {
       </div>
     </div>
 
-    <div v-if="editable" class="mt-4 flex items-center justify-end gap-3 border-t border-neutral-200 pt-4">
-      <span class="text-[11px] text-neutral-500">
+    <div
+      v-if="editable"
+      class="mt-4 flex flex-col gap-3 border-t border-neutral-200 pt-4 sm:flex-row sm:items-center sm:justify-end sm:gap-3">
+      <span class="text-center text-[11px] text-neutral-500 sm:text-right">
         Les modifications ne seront visibles sur la boutique qu'après enregistrement.
       </span>
       <UButton
+        class="w-full shrink-0 sm:w-auto"
         color="primary"
         size="xs"
         icon="i-lucide-save"

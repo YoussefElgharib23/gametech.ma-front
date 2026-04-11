@@ -20,50 +20,37 @@ const legalLinks = [
 
 const socialLinks = [
   {
-    icon: "i-lucide-instagram",
-    href: "https://instagram.com",
-    label: "Instagram",
+    icon: "i-lucide-facebook",
+    href: "https://www.facebook.com/GAMETECH.MA",
+    label: "Facebook",
   },
-  { icon: "i-lucide-twitter", href: "https://twitter.com", label: "Twitter" },
   {
-    icon: "i-lucide-linkedin",
-    href: "https://linkedin.com",
-    label: "LinkedIn",
+    icon: "i-lucide-instagram",
+    href: "https://www.instagram.com/gametech.ma/",
+    label: "Instagram",
   },
 ];
 </script>
 
 <template>
-  <footer
-    class="w-full border-t border-neutral-200 bg-background text-foreground"
-  >
+  <footer class="w-full border-t border-neutral-200 bg-background text-foreground">
     <UContainer class="pb-6">
-      <div
-        class="flex flex-col items-start justify-between gap-8 py-4 md:flex-row lg:py-8"
-      >
+      <div class="flex flex-col items-start justify-between gap-8 py-4 md:flex-row lg:py-8">
         <div class="w-full md:w-auto">
           <NuxtLink to="/" class="flex items-center gap-2">
             <AppLogo class="h-8 w-auto shrink-0" />
           </NuxtLink>
           <p class="text-sm text-neutral-500 mt-4 max-w-sm">
-            Gametech.ma est un magasin informatique spécialisé dans la vente et
-            l'achat de matériel informatique au Maroc. Que ce soit des PC de
-            bureau, des PC portables ou des PC gamers, ordinateur gamer,
-            composants ou périphériques.
+            Gametech.ma est un magasin informatique spécialisé dans la vente et l'achat de matériel informatique au Maroc. Que ce
+            soit des PC de bureau, des PC portables ou des PC gamers, ordinateur gamer, composants ou périphériques.
           </p>
         </div>
 
-        <div
-          class="w-full md:w-auto grid grid-cols-2 gap-8 sm:grid-cols-4 md:flex md:gap-12 lg:gap-16"
-        >
+        <div class="w-full md:w-auto grid grid-cols-2 gap-8 sm:grid-cols-4 md:flex md:gap-12 lg:gap-16">
           <div class="min-w-[120px]">
             <h3 class="text-neutral-500 text-sm font-semibold">Produit</h3>
             <ul class="mt-4 space-y-3 text-sm">
-              <li
-                v-for="link in productLinks"
-                :key="link.label"
-                class="hover:text-primary transition-colors"
-              >
+              <li v-for="link in productLinks" :key="link.label" class="hover:text-primary transition-colors">
                 <NuxtLink :to="link.href">
                   {{ link.label }}
                 </NuxtLink>
@@ -74,11 +61,7 @@ const socialLinks = [
           <div class="min-w-[120px]">
             <h3 class="text-neutral-500 text-sm font-semibold">Entreprise</h3>
             <ul class="mt-4 space-y-3 text-sm">
-              <li
-                v-for="link in companyLinks"
-                :key="link.label"
-                class="hover:text-primary transition-colors"
-              >
+              <li v-for="link in companyLinks" :key="link.label" class="hover:text-primary transition-colors">
                 <NuxtLink :to="link.href">
                   {{ link.label }}
                 </NuxtLink>
@@ -89,11 +72,7 @@ const socialLinks = [
           <div class="min-w-[120px]">
             <h3 class="text-neutral-500 text-sm font-semibold">Légal</h3>
             <ul class="mt-4 space-y-3 text-sm">
-              <li
-                v-for="link in legalLinks"
-                :key="link.label"
-                class="hover:text-primary transition-colors"
-              >
+              <li v-for="link in legalLinks" :key="link.label" class="hover:text-primary transition-colors">
                 <NuxtLink :to="link.href">
                   {{ link.label }}
                 </NuxtLink>
@@ -111,8 +90,7 @@ const socialLinks = [
                 target="_blank"
                 rel="noopener noreferrer"
                 :aria-label="social.label"
-                class="hover:text-primary transition-colors"
-              >
+                class="hover:text-primary transition-colors">
                 <UIcon :name="social.icon" class="size-5" aria-hidden />
               </a>
             </div>
@@ -121,9 +99,7 @@ const socialLinks = [
       </div>
 
       <div class="mt-12 md:mt-16 pt-8 border-t border-neutral-200">
-        <p class="text-sm text-neutral-500">
-          © {{ new Date().getFullYear() }} Gametech.ma. Tous droits réservés.
-        </p>
+        <p class="text-sm text-neutral-500">© {{ new Date().getFullYear() }} Gametech.ma. Tous droits réservés.</p>
       </div>
     </UContainer>
   </footer>

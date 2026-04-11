@@ -112,15 +112,17 @@ const scrollNext = () => {
   <UContainer v-if="hasAnyProducts" class="py-8">
     <!-- Tab Navigation -->
     <div class="flex items-center justify-center mb-6">
-      <UButton
-        icon="i-lucide-chevron-left"
-        color="neutral"
-        variant="ghost"
-        size="lg"
-        aria-label="Précédent"
-        class="rounded-full"
-        @click="scrollPrev" />
-      <div class="max-w-2xl mx-auto">
+      <div class="sm:block hidden">
+        <UButton
+          icon="i-lucide-chevron-left"
+          color="neutral"
+          variant="ghost"
+          size="lg"
+          aria-label="Précédent"
+          class="rounded-full"
+          @click="scrollPrev" />
+      </div>
+      <div class="max-w-2xl mx-auto sm:block hidden">
         <UTabs
           variant="pill"
           class="w-full"
@@ -134,14 +136,27 @@ const scrollNext = () => {
             indicator: 'rounded-full',
           }" />
       </div>
-      <UButton
-        icon="i-lucide-chevron-right"
-        color="neutral"
-        variant="ghost"
-        size="lg"
-        aria-label="Suivant"
-        class="rounded-full"
-        @click="scrollNext" />
+      <div class="sm:hidden flex items-center justify-center gap-2">
+        <UButton
+          v-for="tab in tabs"
+          :key="tab.value"
+          :color="activeTab === tab.value ? 'primary' : 'neutral'"
+          :variant="activeTab === tab.value ? 'solid' : 'outline'"
+          size="xs"
+          :label="tab.label"
+          :icon="tab.icon"
+          @click="activeTab = tab.value" />
+      </div>
+      <div class="sm:block hidden">
+        <UButton
+          icon="i-lucide-chevron-right"
+          color="neutral"
+          variant="ghost"
+          size="lg"
+          aria-label="Suivant"
+          class="rounded-full"
+          @click="scrollNext" />
+      </div>
     </div>
 
     <div v-if="!currentProducts.length" class="py-10 text-center text-neutral-500">Aucun produit dans cette sélection.</div>
@@ -155,7 +170,7 @@ const scrollNext = () => {
         :slides-to-scroll="1"
         :autoplay="{ delay: 3000 }"
         :ui="{
-          item: 'basis-1/5 shrink-0',
+          item: 'basis-1/2 sm:basis-1/5 shrink-0',
           container: 'gap-1',
           viewport: 'overflow-hidden',
         }">
@@ -180,7 +195,7 @@ const scrollNext = () => {
         :slides-to-scroll="1"
         :autoplay="{ delay: 3000 }"
         :ui="{
-          item: 'basis-1/5 shrink-0',
+          item: 'basis-1/2 sm:basis-1/5 shrink-0',
           container: 'gap-1',
           viewport: 'overflow-hidden',
         }">

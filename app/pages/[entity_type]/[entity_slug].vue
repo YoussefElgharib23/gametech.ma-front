@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { AccordionItem } from "@nuxt/ui";
-import type { Ref } from "vue";
-import { refDebounced } from "@vueuse/core";
+import { refDebounced, useMediaQuery } from "@vueuse/core";
 
 const route = useRoute();
 const { addItem } = useCart();
@@ -143,14 +142,6 @@ const filteredBrands = computed(() => {
   return allBrands.value.filter((b) => b.name.toLowerCase().includes(q));
 });
 
-const toggleBrand = (name: string, checked: boolean) => {
-  if (checked) {
-    if (!selectedBrands.value.includes(name)) selectedBrands.value = [...selectedBrands.value, name];
-  } else {
-    selectedBrands.value = selectedBrands.value.filter((b) => b !== name);
-  }
-};
-
 // Reset to page 1 when filters or sort change
 watch([() => priceRange.value[0], () => priceRange.value[1], selectedBrands, stockStatusFilter, promoFilter, sortBy], () => {
   currentPage.value = 1;
@@ -209,23 +200,30 @@ const filteredProducts = computed(() => allProducts.value);
 
 const sidebarProducts = computed(() => archiveData.value?.sidebar_products ?? []);
 
-const hasPriceFilter = computed(() => priceRange.value[0] !== minPrice.value || priceRange.value[1] !== maxPrice.value);
+const mobileFiltersOpen = ref(false);
 
-const hasStockFilter = computed(() => stockStatusFilter.value !== "all");
-const hasPromoFilter = computed(() => promoFilter.value !== "all");
-
-const resetPriceFilter = () => {
-  priceRange.value = [minPrice.value, maxPrice.value];
-};
-
-const clearBrandFilter = (brand?: string) => {
-  if (!brand) {
-    selectedBrands.value = [];
-    return;
+const mobileActiveFiltersCount = computed(() => {
+  let count = 0;
+  if (priceRange.value[0] !== minPrice.value || priceRange.value[1] !== maxPrice.value) {
+    count += 1;
   }
+  count += selectedBrands.value.length;
+  if (stockStatusFilter.value !== "all") {
+    count += 1;
+  }
+  if (promoFilter.value !== "all") {
+    count += 1;
+  }
+  return count;
+});
 
-  selectedBrands.value = selectedBrands.value.filter((b) => b !== brand);
-};
+const isLargeScreen = useMediaQuery("(min-width: 1024px)");
+
+watch(isLargeScreen, (wide) => {
+  if (wide) {
+    mobileFiltersOpen.value = false;
+  }
+});
 
 const archiveTitle = computed(() => {
   if (archiveEntity.value?.label) {
@@ -249,199 +247,16 @@ useSeoMeta({
         <div class="sticky top-14 space-y-4">
           <h2 class="text-sm font-semibold uppercase tracking-wide text-neutral-600">Filtres</h2>
 
-          <UAccordion :items="filterItems" type="multiple" class="divide-y divide-muted" :ui="{ body: 'sm:p-0 p-0' }">
-            <template #price>
-              <div class="p-4 space-y-4">
-                <div class="flex items-center justify-between text-xs text-neutral-500">
-                  <span>Plage de prix (MAD)</span>
-                  <span class="tabular-nums font-medium text-neutral-700">{{ priceRange[0] }} – {{ priceRange[1] }}</span>
-                </div>
-
-                <USlider v-model="priceRange" :min="minPrice" :max="maxPrice" color="primary" />
-
-                <div class="flex items-center gap-3 pt-2">
-                  <UInput
-                    v-model.number="priceRange[0]"
-                    type="number"
-                    size="xs"
-                    :min="minPrice"
-                    :max="priceRange[1]"
-                    class="w-full"
-                    placeholder="Min" />
-                  <span class="text-xs text-neutral-400">–</span>
-                  <UInput
-                    v-model.number="priceRange[1]"
-                    type="number"
-                    size="xs"
-                    :min="priceRange[0]"
-                    :max="maxPrice"
-                    class="w-full"
-                    placeholder="Max" />
-                </div>
-              </div>
-            </template>
-
-            <template #brand>
-              <div class="p-2">
-                <p class="text-xs text-neutral-500 mb-2">Sélectionnez une ou plusieurs marques.</p>
-                <UInput
-                  v-model="brandSearchQuery"
-                  placeholder="Rechercher une marque..."
-                  size="sm"
-                  icon="i-heroicons-magnifying-glass"
-                  class="w-full" />
-                <div class="max-h-64 overflow-y-auto space-y-1.5">
-                  <label
-                    v-for="brand in filteredBrands"
-                    :key="brand.name"
-                    class="flex cursor-pointer items-center gap-2.5 rounded-md p-2 hover:bg-neutral-100 dark:hover:bg-neutral-800">
-                    <UCheckbox
-                      :model-value="selectedBrands.includes(brand.name)"
-                      color="primary"
-                      size="sm"
-                      @update:model-value="(v) => toggleBrand(brand.name, v === true)" />
-                    <img
-                      v-if="brand.image"
-                      :src="brand.image"
-                      :alt="brand.name"
-                      class="h-6 w-8 shrink-0 object-contain object-center"
-                      loading="lazy" />
-                    <span
-                      v-else
-                      class="h-6 w-8 shrink-0 flex items-center justify-center rounded bg-neutral-200 dark:bg-neutral-700 text-[10px] font-medium text-neutral-500">
-                      {{ brand.name.slice(0, 2).toUpperCase() }}
-                    </span>
-                    <span class="truncate text-sm text-neutral-800 dark:text-neutral-200">{{ brand.name }}</span>
-                  </label>
-                </div>
-              </div>
-            </template>
-
-            <template #stock>
-              <div class="p-2">
-                <p class="text-xs text-neutral-500">Filtrer par disponibilité.</p>
-                <URadioGroup
-                  v-model="stockStatusFilter"
-                  :items="[
-                    { label: 'Tous', value: 'all' },
-                    { label: 'En stock', value: 'in_stock' },
-                    { label: 'Rupture de stock', value: 'out_of_stock' },
-                    { label: 'Pré-commande', value: 'preorder' },
-                  ]"
-                  size="xs"
-                  color="primary" />
-              </div>
-            </template>
-
-            <template #promo>
-              <div class="p-2">
-                <p class="text-xs text-neutral-500">Filtrer par promotion.</p>
-                <URadioGroup
-                  v-model="promoFilter"
-                  :items="[
-                    { label: 'Tous', value: 'all' },
-                    { label: 'En promo', value: 'promo' },
-                    { label: 'Non en promo', value: 'no_promo' },
-                  ]"
-                  size="xs"
-                  color="primary" />
-              </div>
-            </template>
-          </UAccordion>
-
-          <div v-if="hasPriceFilter || selectedBrands.length || hasStockFilter || hasPromoFilter" class="space-y-2 pt-1 text-xs">
-            <div v-if="hasPriceFilter" class="flex flex-col gap-1">
-              <span class="text-xs font-medium text-neutral-500">Prix</span>
-              <div class="flex items-center gap-1.5">
-                <UBadge color="primary" variant="soft" size="xs" class="inline-flex items-center gap-1">
-                  <span class="text-[11px]">{{ priceRange[0] }} – {{ priceRange[1] }}</span>
-                  <button
-                    type="button"
-                    class="inline-flex h-4 w-4 items-center justify-center rounded-full text-[10px] text-primary-700 hover:bg-primary-100"
-                    @click.stop="resetPriceFilter">
-                    ×
-                  </button>
-                </UBadge>
-              </div>
-            </div>
-
-            <div v-if="selectedBrands.length" class="flex flex-col gap-1">
-              <span class="text-xs font-medium text-neutral-500">Marque</span>
-              <div class="flex flex-wrap gap-1.5">
-                <UBadge
-                  v-for="brand in selectedBrands"
-                  :key="brand"
-                  color="neutral"
-                  variant="soft"
-                  size="xs"
-                  class="inline-flex items-center gap-1">
-                  <span class="text-[11px]">{{ brand }}</span>
-                  <button
-                    type="button"
-                    class="inline-flex h-4 w-4 items-center justify-center rounded-full text-[10px] text-neutral-700 hover:bg-neutral-100"
-                    @click.stop="clearBrandFilter(brand)">
-                    ×
-                  </button>
-                </UBadge>
-              </div>
-            </div>
-
-            <div v-if="hasStockFilter" class="flex flex-col gap-1">
-              <span class="text-xs font-medium text-neutral-500">Stock</span>
-              <div class="flex flex-wrap gap-1.5">
-                <UBadge color="neutral" variant="soft" size="xs" class="inline-flex items-center gap-1">
-                  <span class="text-[11px]">
-                    {{
-                      stockStatusFilter === "in_stock"
-                        ? "En stock"
-                        : stockStatusFilter === "out_of_stock"
-                          ? "Rupture de stock"
-                          : stockStatusFilter === "preorder"
-                            ? "Pré-commande"
-                            : ""
-                    }}
-                  </span>
-                  <button
-                    type="button"
-                    class="inline-flex h-4 w-4 items-center justify-center rounded-full text-[10px] text-neutral-700 hover:bg-neutral-100"
-                    @click.stop="stockStatusFilter = 'all'">
-                    ×
-                  </button>
-                </UBadge>
-              </div>
-            </div>
-
-            <div v-if="hasPromoFilter" class="flex flex-col gap-1">
-              <span class="text-xs font-medium text-neutral-500">Promotion</span>
-              <div class="flex flex-wrap gap-1.5">
-                <UBadge color="neutral" variant="soft" size="xs" class="inline-flex items-center gap-1">
-                  <span class="text-[11px]">
-                    {{ promoFilter === "promo" ? "En promo" : promoFilter === "no_promo" ? "Non en promo" : "" }}
-                  </span>
-                  <button
-                    type="button"
-                    class="inline-flex h-4 w-4 items-center justify-center rounded-full text-[10px] text-neutral-700 hover:bg-neutral-100"
-                    @click.stop="promoFilter = 'all'">
-                    ×
-                  </button>
-                </UBadge>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              class="text-[11px] font-medium text-neutral-500 hover:text-neutral-700"
-              @click.stop="
-                () => {
-                  resetPriceFilter();
-                  clearBrandFilter();
-                  stockStatusFilter = 'all';
-                  promoFilter = 'all';
-                }
-              ">
-              Tout effacer
-            </button>
-          </div>
+          <ArchiveEntityArchiveFiltersForm
+            v-model:price-range="priceRange"
+            v-model:brand-search-query="brandSearchQuery"
+            v-model:selected-brands="selectedBrands"
+            v-model:stock-status-filter="stockStatusFilter"
+            v-model:promo-filter="promoFilter"
+            :filter-items="filterItems"
+            :filtered-brands="filteredBrands"
+            :bounds-min="minPrice"
+            :bounds-max="maxPrice" />
 
           <div class="mt-6 space-y-3">
             <h3 class="text-xs font-semibold uppercase tracking-wide text-neutral-600">Produits similaires</h3>
@@ -481,12 +296,19 @@ useSeoMeta({
             {{ archiveTitle }}
           </h1>
           <p class="mt-1 text-sm text-neutral-500">
-            Affinez votre recherche avec les filtres par prix et marque, puis explorez les produits correspondants.
+            <span class="lg:hidden">
+              Touchez
+              <span class="font-medium text-neutral-700">Filtres</span>
+              pour affiner par prix, marque, stock et promotions.
+            </span>
+            <span class="hidden lg:inline">
+              Affinez votre recherche avec les filtres par prix et marque, puis explorez les produits correspondants.
+            </span>
           </p>
         </div>
 
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
-          <p class="text-sm text-neutral-500">
+        <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <p class="min-w-0 text-sm text-neutral-500">
             <template v-if="paginationSummary">
               {{ paginationSummary.from }}–{{ paginationSummary.to }} sur {{ paginationSummary.total }} produit
               <span v-if="paginationSummary.total > 1">s</span>
@@ -498,19 +320,28 @@ useSeoMeta({
               <span v-if="filteredProducts.length > 1">s</span>
             </template>
           </p>
-          <div class="flex items-center gap-2">
-            <span class="text-sm text-neutral-500 whitespace-nowrap">Trier par</span>
-            <USelectMenu
-              v-model="sortBy"
-              :items="sortOptions"
-              value-key="value"
-              :search-input="false"
-              placeholder="Trier par"
-              class="min-w-[180px]" />
+          <div class="flex flex-wrap items-center gap-2 sm:justify-end">
+            <UButton
+              class="shrink-0 lg:hidden"
+              icon="i-lucide-sliders-horizontal"
+              color="neutral"
+              variant="outline"
+              :label="mobileActiveFiltersCount ? `Filtres (${mobileActiveFiltersCount})` : 'Filtres'"
+              @click="mobileFiltersOpen = true" />
+            <div class="flex min-w-0 flex-1 items-center gap-2 sm:flex-initial">
+              <span class="shrink-0 whitespace-nowrap text-sm text-neutral-500">Trier par</span>
+              <USelectMenu
+                v-model="sortBy"
+                :items="sortOptions"
+                value-key="value"
+                :search-input="false"
+                placeholder="Trier par"
+                class="min-w-0 flex-1 sm:min-w-[180px]" />
+            </div>
           </div>
         </div>
 
-        <div v-if="filteredProducts.length" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+        <div v-if="filteredProducts.length" class="grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 grid-cols-2 gap-4">
           <ProductCard
             v-for="product in filteredProducts"
             :key="product.id"
@@ -539,5 +370,31 @@ useSeoMeta({
         </div>
       </section>
     </div>
+
+    <USlideover
+      v-model:open="mobileFiltersOpen"
+      title="Filtres"
+      side="left"
+      :ui="{
+        header: 'p-4 border-b border-muted',
+        body: 'p-4 overflow-y-auto overscroll-contain max-h-[calc(100dvh-9rem)]',
+        footer: 'p-4 border-t border-muted',
+      }">
+      <template #body>
+        <ArchiveEntityArchiveFiltersForm
+          v-model:price-range="priceRange"
+          v-model:brand-search-query="brandSearchQuery"
+          v-model:selected-brands="selectedBrands"
+          v-model:stock-status-filter="stockStatusFilter"
+          v-model:promo-filter="promoFilter"
+          :filter-items="filterItems"
+          :filtered-brands="filteredBrands"
+          :bounds-min="minPrice"
+          :bounds-max="maxPrice" />
+      </template>
+      <template #footer>
+        <UButton label="Voir les résultats" color="primary" block class="justify-center" @click="mobileFiltersOpen = false" />
+      </template>
+    </USlideover>
   </div>
 </template>
