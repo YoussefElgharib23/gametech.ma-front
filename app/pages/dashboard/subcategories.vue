@@ -3,10 +3,18 @@ definePageMeta({
   layout: "dashboard",
 });
 
+interface CategoryGroup {
+  id: number;
+  category_id: number;
+  name: string;
+}
+
 interface Subcategory {
   id: number;
   category_id: number;
   category_name: string;
+  category_group_id: number | null;
+  category_group_name: string | null;
   name: string;
   slug: string;
   status: "active" | "inactive";
@@ -14,23 +22,72 @@ interface Subcategory {
 }
 
 const route = useRoute();
-const categoryId = computed(() => {
-  const id = route.query.category_id;
-  return id ? Number(id) : null;
+
+const categoryGroupIdParam = computed(() => {
+  const raw = route.query.category_group_id;
+  if (raw == null || raw === "") {
+    return null;
+  }
+  const n = Number(raw);
+
+  return Number.isFinite(n) && n > 0 ? n : null;
 });
 
-const { data: subcategoriesData, refresh } = await useAPIFetch<Subcategory[]>(() => {
+const categoryIdParam = computed(() => {
+  const raw = route.query.category_id;
+  if (raw == null || raw === "") {
+    return null;
+  }
+  const n = Number(raw);
+
+  return Number.isFinite(n) && n > 0 ? n : null;
+});
+
+const subcategoriesUrl = computed(() => {
   const base = "/subcategories";
-  return categoryId.value ? `${base}?category_id=${categoryId.value}` : base;
+  if (categoryGroupIdParam.value != null) {
+    return `${base}?category_group_id=${categoryGroupIdParam.value}`;
+  }
+  if (categoryIdParam.value != null) {
+    return `${base}?category_id=${categoryIdParam.value}`;
+  }
+
+  return base;
+});
+
+const { data: subcategoriesData, refresh } = await useAPIFetch<Subcategory[]>(subcategoriesUrl);
+const { data: allGroupsData } = await useAPIFetch<CategoryGroup[]>("/category-groups");
+
+watch(
+  () => route.query,
+  () => {
+    void refresh();
+  },
+  { deep: true },
+);
+
+const groupsForCreate = computed(() => {
+  if (categoryGroupIdParam.value != null) {
+    return [];
+  }
+  const cid = categoryIdParam.value;
+  if (cid == null) {
+    return allGroupsData.value ?? [];
+  }
+
+  return (allGroupsData.value ?? []).filter((g) => g.category_id === cid);
 });
 
 const search = ref("");
 const filteredSubcategories = computed(() => {
   const list = subcategoriesData.value ?? [];
   const term = search.value.trim().toLowerCase();
-  if (!term) return list;
+  if (!term) {
+    return list;
+  }
+
   return list.filter((sub) =>
-    [sub.name, sub.slug, sub.category_name].filter(Boolean).some((field) => field!.toLowerCase().includes(term)),
+    [sub.name, sub.slug, sub.category_name, sub.category_group_name].filter(Boolean).some((field) => field!.toLowerCase().includes(term)),
   );
 });
 
@@ -46,8 +103,8 @@ const subcategoryColumns = [
     meta: { class: { td: "min-w-0" } },
   },
   {
-    accessorKey: "category_name",
-    header: "Catégorie parente",
+    accessorKey: "category_group_name",
+    header: "Groupe",
     meta: { class: { td: "w-48" } },
   },
   {
@@ -69,7 +126,7 @@ const editingId = ref<number | null>(null);
 const deletingSubcategory = ref<Subcategory | null>(null);
 const saving = ref(false);
 const form = ref({
-  category_id: categoryId.value ?? 0,
+  category_group_id: undefined as number | undefined,
   name: "",
   status: true as boolean,
   position: 0,
@@ -78,16 +135,67 @@ const form = ref({
 const isEditing = computed(() => editingId.value != null);
 const modalTitle = computed(() => (isEditing.value ? "Modifier la sous-catégorie" : "Nouvelle sous-catégorie"));
 
-const currentCategoryName = computed(() => {
-  if (!categoryId.value) return null;
-  const firstSub = (subcategoriesData.value ?? [])[0];
-  return firstSub?.category_name ?? null;
+const headerTitle = computed(() => {
+  if (categoryGroupIdParam.value != null) {
+    const first = (subcategoriesData.value ?? [])[0];
+    const gname = first?.category_group_name;
+    if (gname) {
+      return `Sous-catégories — ${gname}`;
+    }
+
+    return "Sous-catégories";
+  }
+  if (categoryIdParam.value != null) {
+    const first = (subcategoriesData.value ?? [])[0];
+    const cname = first?.category_name;
+    if (cname) {
+      return `Sous-catégories — ${cname}`;
+    }
+
+    return "Sous-catégories";
+  }
+
+  return "Sous-catégories";
+});
+
+const backToUrl = computed(() => {
+  const cid = categoryIdParam.value;
+  if (cid != null) {
+    return `/dashboard/category-groups?category_id=${cid}`;
+  }
+
+  return "/dashboard/categories";
+});
+
+const showGroupFieldInModal = computed(() => !isEditing.value && categoryGroupIdParam.value == null);
+
+const canCreate = computed(() => {
+  if (isEditing.value) {
+    return true;
+  }
+  if (categoryGroupIdParam.value != null) {
+    return true;
+  }
+  if (categoryIdParam.value != null && groupsForCreate.value.length > 0) {
+    return true;
+  }
+
+  return false;
 });
 
 function openCreate() {
+  if (!canCreate.value) {
+    toast.add({
+      title: "Contexte requis",
+      description: "Ouvrez les sous-catégories depuis un groupe, ou choisissez un groupe ci-dessous.",
+      color: "warning",
+    });
+
+    return;
+  }
   editingId.value = null;
   form.value = {
-    category_id: categoryId.value ?? 0,
+    category_group_id: categoryGroupIdParam.value ?? undefined,
     name: "",
     status: true,
     position: 0,
@@ -98,7 +206,7 @@ function openCreate() {
 function openEdit(sub: Subcategory) {
   editingId.value = sub.id;
   form.value = {
-    category_id: sub.category_id,
+    category_group_id: sub.category_group_id ?? undefined,
     name: sub.name,
     status: sub.status === "active",
     position: sub.position,
@@ -123,17 +231,13 @@ function closeDeleteModal() {
 
 async function submitForm() {
   if (!form.value.name.trim()) {
-    toast.add({
-      title: "Nom requis",
-      color: "error",
-    });
+    toast.add({ title: "Nom requis", color: "error" });
+
     return;
   }
-  if (!form.value.category_id) {
-    toast.add({
-      title: "Catégorie parente requise",
-      color: "error",
-    });
+  if (!isEditing.value && (form.value.category_group_id == null || form.value.category_group_id === 0)) {
+    toast.add({ title: "Groupe requis", color: "error" });
+
     return;
   }
   saving.value = true;
@@ -142,7 +246,6 @@ async function submitForm() {
       await $apiFetch(`/subcategories/${editingId.value}`, {
         method: "PUT",
         body: {
-          category_id: form.value.category_id,
           name: form.value.name.trim(),
           status: form.value.status ? "active" : "inactive",
           position: form.value.position,
@@ -153,7 +256,7 @@ async function submitForm() {
       await $apiFetch("/subcategories", {
         method: "POST",
         body: {
-          category_id: form.value.category_id,
+          category_group_id: form.value.category_group_id as number,
           name: form.value.name.trim(),
           status: form.value.status ? "active" : "inactive",
           position: form.value.position,
@@ -164,17 +267,16 @@ async function submitForm() {
     await refresh();
     closeModal();
   } catch {
-    toast.add({
-      title: "Erreur lors de l'enregistrement",
-      color: "error",
-    });
+    toast.add({ title: "Erreur lors de l'enregistrement", color: "error" });
   } finally {
     saving.value = false;
   }
 }
 
 async function confirmDelete() {
-  if (!deletingSubcategory.value) return;
+  if (!deletingSubcategory.value) {
+    return;
+  }
   const id = deletingSubcategory.value.id;
   saving.value = true;
   try {
@@ -183,30 +285,35 @@ async function confirmDelete() {
     await refresh();
     closeDeleteModal();
   } catch {
-    toast.add({
-      title: "Erreur lors de la suppression",
-      color: "error",
-    });
+    toast.add({ title: "Erreur lors de la suppression", color: "error" });
   } finally {
     saving.value = false;
   }
 }
+
+const groupSelectItems = computed(() => groupsForCreate.value.map((g) => ({ label: g.name, value: g.id })));
+const groupIdModel = computed({
+  get: () => form.value.category_group_id,
+  set: (v: number | undefined) => {
+    form.value.category_group_id = v;
+  },
+});
 </script>
 
 <template>
   <UDashboardPanel>
     <template #header>
-      <UDashboardNavbar :title="currentCategoryName ? `Sous-catégories de ${currentCategoryName}` : 'Sous-catégories'">
+      <UDashboardNavbar :title="headerTitle">
         <template #left>
-          <UButton
-            icon="i-lucide-arrow-left"
-            color="neutral"
-            variant="ghost"
-            to="/dashboard/categories"
-            aria-label="Retour aux catégories" />
+          <UButton icon="i-lucide-arrow-left" color="neutral" variant="ghost" :to="backToUrl" aria-label="Retour" />
         </template>
         <template #right>
-          <UButton icon="i-lucide-plus" label="Ajouter une sous-catégorie" color="primary" @click="openCreate" />
+          <UButton
+            icon="i-lucide-plus"
+            label="Ajouter une sous-catégorie"
+            color="primary"
+            :disabled="!canCreate"
+            @click="openCreate" />
         </template>
       </UDashboardNavbar>
     </template>
@@ -232,8 +339,8 @@ async function confirmDelete() {
               {{ row.original.name }}
             </span>
           </template>
-          <template #category_name-cell="{ row }">
-            <span class="text-neutral-600">{{ row.original.category_name }}</span>
+          <template #category_group_name-cell="{ row }">
+            <span class="text-neutral-600">{{ row.original.category_group_name ?? "—" }}</span>
           </template>
           <template #status-cell="{ row }">
             <UBadge :color="row.original.status === 'active' ? 'success' : 'neutral'" variant="subtle" size="xs">
@@ -267,7 +374,6 @@ async function confirmDelete() {
     </template>
   </UDashboardPanel>
 
-  <!-- Create / Edit modal -->
   <UModal
     v-model:open="modalOpen"
     :title="modalTitle"
@@ -280,6 +386,16 @@ async function confirmDelete() {
     }">
     <template #body>
       <form class="w-full space-y-4" @submit.prevent="submitForm">
+        <UFormField v-if="showGroupFieldInModal" label="Groupe" required class="w-full">
+          <USelectMenu
+            v-model="groupIdModel"
+            :items="groupSelectItems"
+            placeholder="Sélectionner un groupe"
+            size="md"
+            class="w-full"
+            label-key="label"
+            value-key="value" />
+        </UFormField>
         <UFormField label="Nom" required class="w-full">
           <UInput v-model="form.name" placeholder="Ex. RTX 4090" size="lg" class="w-full" />
         </UFormField>
@@ -288,6 +404,9 @@ async function confirmDelete() {
             v-model="form.status"
             label="Activer la sous-catégorie"
             :description="form.status ? 'Visible sur la boutique' : 'Masquée sur la boutique'" />
+        </UFormField>
+        <UFormField label="Position" class="w-full">
+          <UInput v-model.number="form.position" type="number" min="0" size="md" class="w-full" />
         </UFormField>
       </form>
     </template>
@@ -299,13 +418,12 @@ async function confirmDelete() {
     </template>
   </UModal>
 
-  <!-- Delete confirmation modal -->
   <UModal
     v-model:open="deleteModalOpen"
     title="Supprimer la sous-catégorie"
     description="Cette action est irréversible."
     :ui="{
-      header: 'sm:p-3 p-3 border-none',
+      header: 'sm:p-3 p-3',
       body: 'sm:p-3 p-3',
       footer: 'sm:p-3 p-3',
       content: 'divide-y-0',

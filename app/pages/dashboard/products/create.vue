@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import * as z from "zod";
-import type { FormSubmitEvent } from "@nuxt/ui";
+import { parseProductsListReturnQuery } from "~/utils/dashboardProductsListReturn";
 import { CATALOG_SECTIONS, CATALOG_SECTION_SLUGS, type CatalogSectionSlug } from "~/constants/catalogSections";
 import { CONFIGURATOR_CATEGORIES, type ConfiguratorCategory } from "~/constants/configuratorCategories";
 
@@ -17,6 +17,13 @@ interface Subcategory {
   id: number;
   name: string;
   category_id: number;
+  category_group_id?: number | null;
+}
+
+interface CategoryGroup {
+  id: number;
+  name: string;
+  category_id: number;
 }
 
 interface Brand {
@@ -25,15 +32,19 @@ interface Brand {
   image: string | null;
 }
 
+const route = useRoute();
 const router = useRouter();
 const toast = useToast();
 
-const schema = z.object({
+const productsListReturnPath = computed(() => parseProductsListReturnQuery(route.query.return));
+
+const productFormSchema = z.object({
   title: z.string().min(1, "Titre requis"),
   sku: z.string().min(1, "SKU requis"),
   description: z.string().optional(),
   short_description: z.string().optional(),
   category_id: z.number({ required_error: "Catégorie requise" }),
+  category_group_id: z.number().optional().nullable(),
   subcategory_id: z.number().optional().nullable(),
   brand_id: z.number({ required_error: "Marque requise" }),
   price: z.coerce
@@ -51,14 +62,15 @@ const schema = z.object({
   catalog_sections: z.array(z.enum(CATALOG_SECTION_SLUGS)).optional(),
 });
 
-type Schema = z.output<typeof schema>;
+type Schema = z.output<typeof productFormSchema>;
 
-const state = reactive<Partial<z.infer<typeof schema>>>({
+const state = reactive<Partial<z.infer<typeof productFormSchema>>>({
   title: "",
   sku: "",
   description: "",
   short_description: "",
   category_id: undefined,
+  category_group_id: undefined,
   subcategory_id: undefined,
   brand_id: undefined,
   price: "",
@@ -80,11 +92,46 @@ const formRef = useTemplateRef<{
 
 const { data: categoriesData } = await useAPIFetch<Category[]>("/categories");
 const { data: subcategoriesData } = await useAPIFetch<Subcategory[]>("/subcategories");
+const { data: categoryGroupsData } = await useAPIFetch<CategoryGroup[]>("/category-groups");
 const { data: brandsData } = await useAPIFetch<Brand[]>("/brands");
 
 const uploadedImages = ref<Array<{ id: number; url: string }>>([]);
 const uploading = ref(false);
 const saving = ref(false);
+
+const schema = computed(() =>
+  productFormSchema.superRefine((data, ctx) => {
+    if (data.subcategory_id == null || data.subcategory_id === undefined) {
+      return;
+    }
+    if (data.category_group_id == null || data.category_group_id === undefined) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Sélectionnez un groupe avant une sous-catégorie.",
+        path: ["category_group_id"],
+      });
+
+      return;
+    }
+    const sub = (subcategoriesData.value ?? []).find((s) => s.id === data.subcategory_id);
+    if (!sub) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Sous-catégorie invalide.",
+        path: ["subcategory_id"],
+      });
+
+      return;
+    }
+    if (data.category_group_id != null && sub.category_group_id !== data.category_group_id) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Cette sous-catégorie n'appartient pas au groupe sélectionné.",
+        path: ["subcategory_id"],
+      });
+    }
+  }),
+);
 
 const brandItems = computed(() =>
   (brandsData.value ?? []).map((b) => ({
@@ -94,6 +141,17 @@ const brandItems = computed(() =>
   })),
 );
 
+const categoryIdModel = computed({
+  get: () => state.category_id ?? undefined,
+  set: (v: number | undefined) => {
+    if (v !== state.category_id) {
+      state.subcategory_id = undefined;
+      state.category_group_id = undefined;
+    }
+    state.category_id = v;
+  },
+});
+
 const subcategoryIdModel = computed({
   get: () => state.subcategory_id ?? undefined,
   set: (v: number | undefined) => {
@@ -101,17 +159,25 @@ const subcategoryIdModel = computed({
   },
 });
 
-const filteredSubcategories = computed(() => {
-  if (state.category_id == null) return [];
-  return (subcategoriesData.value ?? []).filter((s) => s.category_id === state.category_id);
+const categoryGroupIdModel = computed({
+  get: () => state.category_group_id ?? undefined,
+  set: (v: number | undefined) => {
+    if (v !== state.category_group_id) {
+      state.subcategory_id = undefined;
+    }
+    state.category_group_id = v;
+  },
 });
 
-watch(
-  () => state.category_id,
-  () => {
-    state.subcategory_id = undefined;
-  },
-);
+const filteredCategoryGroups = computed(() => {
+  if (state.category_id == null) return [];
+  return (categoryGroupsData.value ?? []).filter((g) => g.category_id === state.category_id);
+});
+
+const filteredSubcategoriesForGroup = computed(() => {
+  if (state.category_group_id == null) return [];
+  return (subcategoriesData.value ?? []).filter((s) => s.category_group_id === state.category_group_id);
+});
 
 const statusOptions = [
   { label: "Actif", value: "active" },
@@ -210,7 +276,7 @@ function backendErrorsToFormErrors(errors: Record<string, string[]>): Array<{ na
   }));
 }
 
-async function onSubmit(event: FormSubmitEvent<Schema>) {
+async function onSubmit(event: { data: Schema }) {
   const data = event.data;
   saving.value = true;
   formRef.value?.setErrors([]);
@@ -223,6 +289,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
         description: (data.description ?? "").trim() || null,
         short_description: (data.short_description ?? "").trim() || null,
         category_id: data.category_id,
+        category_group_id: data.category_group_id ?? null,
         subcategory_id: data.subcategory_id ?? null,
         brand_id: data.brand_id,
         price: parseFloat(data.price),
@@ -239,7 +306,7 @@ async function onSubmit(event: FormSubmitEvent<Schema>) {
       },
     });
     toast.add({ title: "Produit créé", color: "success" });
-    router.push("/dashboard/products");
+    await router.push(productsListReturnPath.value);
   } catch (error: any) {
     const backendErrors = error?.data?.errors;
     if (backendErrors && typeof backendErrors === "object") {
@@ -267,7 +334,7 @@ function submitForm() {
       <UDashboardNavbar title="Nouveau produit">
         <template #right>
           <div class="flex items-center gap-2">
-            <UButton color="neutral" variant="outline" label="Ignorer" to="/dashboard/products" />
+            <UButton color="neutral" variant="outline" label="Ignorer" :to="productsListReturnPath" />
             <UButton color="primary" label="Enregistrer" :loading="saving" @click="submitForm" />
           </div>
         </template>
@@ -276,7 +343,7 @@ function submitForm() {
 
     <template #body>
       <div class="mb-2">
-        <NuxtLink to="/dashboard/products" class="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
+        <NuxtLink :to="productsListReturnPath" class="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700">
           <UIcon name="i-heroicons-arrow-left" class="h-4 w-4" />
           Retour aux produits
         </NuxtLink>
@@ -490,7 +557,7 @@ function submitForm() {
                 </UFormField>
                 <UFormField label="Catégorie" name="category_id" required class="w-full">
                   <USelectMenu
-                    v-model="state.category_id"
+                    v-model="categoryIdModel"
                     :items="(categoriesData ?? []).map((c) => ({ label: c.name, value: c.id }))"
                     placeholder="Sélectionner une catégorie"
                     size="md"
@@ -498,16 +565,36 @@ function submitForm() {
                     label-key="label"
                     value-key="value" />
                 </UFormField>
-                <UFormField label="Sous-catégorie" name="subcategory_id" class="w-full">
+                <UFormField
+                  label="Groupe"
+                  name="category_group_id"
+                  help="Sous-catégories disponibles après choix du groupe. Laissez la sous-catégorie vide pour rattacher le produit au groupe entier."
+                  class="w-full">
                   <USelectMenu
-                    v-model="subcategoryIdModel"
-                    :items="filteredSubcategories.map((s) => ({ label: s.name, value: s.id }))"
-                    placeholder="Sélectionner"
+                    v-model="categoryGroupIdModel"
+                    :items="filteredCategoryGroups.map((g) => ({ label: g.name, value: g.id }))"
+                    placeholder="Sélectionner un groupe"
                     size="md"
                     class="w-full"
                     label-key="label"
                     value-key="value"
-                    :disabled="state.category_id == null || !filteredSubcategories.length" />
+                    :disabled="state.category_id == null || !filteredCategoryGroups.length" />
+                </UFormField>
+                <UFormField
+                  label="Sous-catégorie"
+                  name="subcategory_id"
+                  help="Optionnel : précisez une sous-catégorie du groupe, ou effacez pour rester au niveau groupe uniquement."
+                  class="w-full">
+                  <USelectMenu
+                    v-model="subcategoryIdModel"
+                    :items="filteredSubcategoriesForGroup.map((s) => ({ label: s.name, value: s.id }))"
+                    placeholder="Aucune (niveau groupe)"
+                    size="md"
+                    class="w-full"
+                    label-key="label"
+                    value-key="value"
+                    :clear="true"
+                    :disabled="state.category_group_id == null || !filteredSubcategoriesForGroup.length" />
                 </UFormField>
                 <UFormField
                   label="Bloc page d'accueil"

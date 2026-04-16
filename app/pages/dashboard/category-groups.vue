@@ -6,26 +6,67 @@ definePageMeta({
 interface Category {
   id: number;
   name: string;
+}
+
+interface CategoryGroup {
+  id: number;
+  category_id: number;
+  category_name?: string | null;
+  name: string;
   slug: string;
-  image: string | null;
+  icon: string | null;
   status: "active" | "inactive";
   position: number;
 }
 
-const { data: categoriesData, refresh } = await useAPIFetch<Category[]>("/categories");
+const route = useRoute();
 
-const search = ref("");
-const filteredCategories = computed(() => {
-  const list = categoriesData.value ?? [];
-  const term = search.value.trim().toLowerCase();
-  if (!term) return list;
-  return list.filter((cat) => [cat.name, cat.slug].filter(Boolean).some((field) => field!.toLowerCase().includes(term)));
+const categoryIdParam = computed(() => {
+  const raw = route.query.category_id;
+  if (raw == null || raw === "") {
+    return null;
+  }
+  const n = Number(raw);
+
+  return Number.isFinite(n) && n > 0 ? n : null;
 });
 
-const categoryColumns = [
+const { data: categoriesData } = await useAPIFetch<Category[]>("/categories");
+const { data: allGroupsData, refresh } = await useAPIFetch<CategoryGroup[]>("/category-groups");
+
+const groupsForCategory = computed(() => {
+  const id = categoryIdParam.value;
+  if (id == null) {
+    return [];
+  }
+
+  return (allGroupsData.value ?? []).filter((g) => g.category_id === id);
+});
+
+const currentCategoryName = computed(() => {
+  const id = categoryIdParam.value;
+  if (id == null) {
+    return null;
+  }
+
+  return categoriesData.value?.find((c) => c.id === id)?.name ?? null;
+});
+
+const search = ref("");
+const filteredGroups = computed(() => {
+  const list = groupsForCategory.value;
+  const term = search.value.trim().toLowerCase();
+  if (!term) {
+    return list;
+  }
+
+  return list.filter((g) => g.name.toLowerCase().includes(term));
+});
+
+const groupColumns = [
   {
     accessorKey: "name",
-    header: "Catégorie",
+    header: "Groupe",
     meta: { class: { td: "min-w-0" } },
   },
   {
@@ -36,7 +77,7 @@ const categoryColumns = [
   {
     id: "actions",
     header: "",
-    meta: { class: { td: "w-36 text-right" } },
+    meta: { class: { td: "w-44 text-right" } },
   },
 ];
 
@@ -44,65 +85,41 @@ const toast = useToast();
 const modalOpen = ref(false);
 const deleteModalOpen = ref(false);
 const editingId = ref<number | null>(null);
-const deletingCategory = ref<Category | null>(null);
+const deletingGroup = ref<CategoryGroup | null>(null);
 const saving = ref(false);
-const uploading = ref(false);
 const form = ref({
   name: "",
-  image: "",
-  status: true as boolean, // true = active, false = inactive
-  position: 0,
+  status: true as boolean,
 });
 
-function triggerImageInput() {
-  const input = document.getElementById("category-image-upload") as HTMLInputElement | null;
-  input?.click();
-}
-
-async function onImageChange(event: Event) {
-  const target = event.target as HTMLInputElement;
-  const file = target.files?.[0];
-  if (!file) return;
-  uploading.value = true;
-  try {
-    const body = new FormData();
-    body.append("file", file);
-    body.append("directory", "categories");
-    const upload = await $apiFetch<{ id: number; url: string }>("/uploads/preview", { method: "POST", body });
-    form.value.image = upload.url;
-  } catch {
-  } finally {
-    uploading.value = false;
-    target.value = "";
-  }
-}
-
-function clearImage() {
-  form.value.image = "";
-}
-
 const isEditing = computed(() => editingId.value != null);
-const modalTitle = computed(() => (isEditing.value ? "Modifier la catégorie" : "Nouvelle catégorie"));
+const modalTitle = computed(() => (isEditing.value ? "Modifier le groupe" : "Nouveau groupe"));
+const navbarTitle = computed(() =>
+  currentCategoryName.value ? `Groupes — ${currentCategoryName.value}` : "Groupes",
+);
 
 function openCreate() {
+  if (categoryIdParam.value == null) {
+    toast.add({ title: "Catégorie introuvable", description: "Ouvrez cette page depuis une catégorie.", color: "error" });
+
+    return;
+  }
   editingId.value = null;
-  form.value = { name: "", image: "", status: true, position: 0 };
+  form.value = { name: "", status: true };
   modalOpen.value = true;
 }
 
-function openEdit(cat: Category) {
-  editingId.value = cat.id;
+function openEdit(group: CategoryGroup) {
+  editingId.value = group.id;
   form.value = {
-    name: cat.name,
-    image: cat.image ?? "",
-    status: cat.status === "active",
-    position: cat.position,
+    name: group.name,
+    status: group.status === "active",
   };
   modalOpen.value = true;
 }
 
-function openDelete(cat: Category) {
-  deletingCategory.value = cat;
+function openDelete(group: CategoryGroup) {
+  deletingGroup.value = group;
   deleteModalOpen.value = true;
 }
 
@@ -113,112 +130,136 @@ function closeModal() {
 
 function closeDeleteModal() {
   deleteModalOpen.value = false;
-  deletingCategory.value = null;
+  deletingGroup.value = null;
 }
 
 async function submitForm() {
   if (!form.value.name.trim()) {
-    toast.add({
-      title: "Nom requis",
-      color: "error",
-    });
+    toast.add({ title: "Nom requis", color: "error" });
+
+    return;
+  }
+  if (categoryIdParam.value == null) {
+    toast.add({ title: "Catégorie requise", color: "error" });
+
     return;
   }
   saving.value = true;
   try {
     if (isEditing.value && editingId.value != null) {
-      await $apiFetch(`/categories/${editingId.value}`, {
+      await $apiFetch(`/category-groups/${editingId.value}`, {
         method: "PUT",
         body: {
           name: form.value.name.trim(),
-          image: form.value.image.trim() || null,
           status: form.value.status ? "active" : "inactive",
-          position: form.value.position,
         },
       });
-      toast.add({ title: "Catégorie mise à jour", color: "success" });
+      toast.add({ title: "Groupe mis à jour", color: "success" });
     } else {
-      await $apiFetch("/categories", {
+      await $apiFetch("/category-groups", {
         method: "POST",
         body: {
+          category_id: categoryIdParam.value,
           name: form.value.name.trim(),
-          image: form.value.image.trim() || null,
           status: form.value.status ? "active" : "inactive",
-          position: form.value.position,
         },
       });
-      toast.add({ title: "Catégorie créée", color: "success" });
+      toast.add({ title: "Groupe créé", color: "success" });
     }
     await refresh();
     closeModal();
   } catch {
-    toast.add({
-      title: "Erreur lors de l'enregistrement",
-      color: "error",
-    });
+    toast.add({ title: "Erreur lors de l'enregistrement", color: "error" });
   } finally {
     saving.value = false;
   }
 }
 
 async function confirmDelete() {
-  if (!deletingCategory.value) return;
-  const id = deletingCategory.value.id;
+  if (!deletingGroup.value) {
+    return;
+  }
+  const id = deletingGroup.value.id;
   saving.value = true;
   try {
-    await $apiFetch(`/categories/${id}`, { method: "DELETE" });
-    toast.add({ title: "Catégorie supprimée", color: "success" });
+    await $apiFetch(`/category-groups/${id}`, { method: "DELETE" });
+    toast.add({ title: "Groupe supprimé", color: "success" });
     await refresh();
     closeDeleteModal();
   } catch {
-    toast.add({
-      title: "Erreur lors de la suppression",
-      color: "error",
-    });
+    toast.add({ title: "Erreur lors de la suppression", color: "error" });
   } finally {
     saving.value = false;
   }
+}
+
+function subcategoriesUrl(group: CategoryGroup): string {
+  const cid = group.category_id;
+  const gid = group.id;
+
+  return `/dashboard/subcategories?category_group_id=${gid}&category_id=${cid}`;
 }
 </script>
 
 <template>
   <UDashboardPanel>
     <template #header>
-      <UDashboardNavbar title="Catégories">
+      <UDashboardNavbar :title="navbarTitle">
+        <template #left>
+          <UButton
+            icon="i-lucide-arrow-left"
+            color="neutral"
+            variant="ghost"
+            to="/dashboard/categories"
+            aria-label="Retour aux catégories" />
+        </template>
         <template #right>
-          <UButton icon="i-lucide-plus" label="Ajouter une catégorie" color="primary" @click="openCreate" />
+          <UButton
+            icon="i-lucide-plus"
+            label="Ajouter un groupe"
+            color="primary"
+            :disabled="categoryIdParam == null"
+            @click="openCreate" />
         </template>
       </UDashboardNavbar>
     </template>
 
     <template #body>
-      <UCard :ui="{ body: 'sm:p-0 p-0' }">
+      <div v-if="categoryIdParam == null" class="py-16 text-center text-neutral-600 px-4">
+        <p class="text-sm font-medium text-neutral-800">Aucune catégorie sélectionnée</p>
+        <p class="text-xs text-neutral-500 mt-1 max-w-md mx-auto">
+          Ouvrez les groupes depuis la liste des catégories (bouton « Groupes » sur une ligne).
+        </p>
+        <UButton class="mt-4" color="primary" variant="soft" label="Aller aux catégories" to="/dashboard/categories" />
+      </div>
+
+      <UCard v-else :ui="{ body: 'sm:p-0 p-0' }">
         <template #header>
           <div class="p-2">
             <UInput
               v-model="search"
               icon="i-lucide-search"
-              placeholder="Rechercher une catégorie…"
+              placeholder="Rechercher un groupe…"
               size="md"
               class="max-w-sm w-full" />
           </div>
         </template>
 
-        <div v-if="!filteredCategories.length" class="py-12 text-center text-neutral-500">
-          Aucune catégorie. Cliquez sur « Ajouter une catégorie » pour commencer.
+        <div v-if="!filteredGroups.length" class="py-12 text-center text-neutral-500">
+          Aucun groupe pour cette catégorie. Cliquez sur « Ajouter un groupe » pour commencer.
         </div>
 
-        <UTable v-else :data="filteredCategories" :columns="categoryColumns">
+        <UTable v-else :data="filteredGroups" :columns="groupColumns">
           <template #name-cell="{ row }">
             <div class="flex items-center gap-3">
               <div class="h-10 w-10 shrink-0 overflow-hidden rounded border border-neutral-200 bg-neutral-100">
                 <img
-                  v-if="row.original.image"
-                  :src="row.original.image"
+                  v-if="row.original.icon"
+                  :src="row.original.icon"
                   :alt="row.original.name"
                   class="h-full w-full object-cover" />
                 <div v-else class="flex h-full w-full items-center justify-center text-neutral-400">
-                  <UIcon name="i-lucide-image" class="size-5" />
+                  <UIcon name="i-lucide-layers" class="size-5" />
                 </div>
               </div>
               <span class="min-w-0 truncate font-medium text-neutral-900">
@@ -233,14 +274,14 @@ async function confirmDelete() {
           </template>
           <template #actions-cell="{ row }">
             <div class="inline-flex items-center justify-end gap-1 rounded-lg border border-neutral-200 bg-neutral-50 p-1">
-              <UTooltip :delay-duration="0" text="Groupes">
+              <UTooltip :delay-duration="0" text="Sous-catégories">
                 <UButton
-                  icon="i-lucide-layers"
+                  icon="i-lucide-folder-tree"
                   color="neutral"
                   variant="ghost"
                   size="xs"
-                  aria-label="Groupes"
-                  :to="`/dashboard/category-groups?category_id=${row.original.id}`" />
+                  aria-label="Sous-catégories"
+                  :to="subcategoriesUrl(row.original)" />
               </UTooltip>
               <USeparator orientation="vertical" class="h-4" />
               <UTooltip :delay-duration="0" text="Modifier">
@@ -269,7 +310,6 @@ async function confirmDelete() {
     </template>
   </UDashboardPanel>
 
-  <!-- Create / Edit modal -->
   <UModal
     v-model:open="modalOpen"
     :title="modalTitle"
@@ -283,40 +323,13 @@ async function confirmDelete() {
     <template #body>
       <form class="w-full space-y-4" @submit.prevent="submitForm">
         <UFormField label="Nom" required class="w-full">
-          <UInput v-model="form.name" placeholder="Ex. CARTE GRAPHIQUE" size="lg" class="w-full" />
+          <UInput v-model="form.name" placeholder="Ex. NVIDIA GeForce" size="lg" class="w-full" />
         </UFormField>
         <UFormField label="Statut" class="w-full">
           <USwitch
             v-model="form.status"
-            label="Activer la catégorie"
-            :description="form.status ? 'Visible sur la boutique' : 'Masquée sur la boutique'" />
-        </UFormField>
-        <UFormField label="Image (optionnel)" class="w-full">
-          <div class="flex w-full flex-col items-start gap-3">
-            <div
-              v-if="form.image"
-              class="relative h-32 w-32 shrink-0 overflow-hidden rounded-lg border border-neutral-200 bg-neutral-100">
-              <img :src="form.image" alt="Aperçu" class="h-full w-full object-cover" />
-              <UButton
-                icon="i-lucide-x"
-                color="error"
-                variant="outline"
-                size="xs"
-                class="absolute right-1 top-1"
-                aria-label="Supprimer l'image"
-                @click="clearImage" />
-            </div>
-            <UButton
-              color="neutral"
-              variant="soft"
-              size="lg"
-              icon="i-lucide-upload-cloud"
-              class="max-w-xs"
-              :label="uploading ? 'Téléchargement…' : form.image ? 'Changer l\'image' : 'Choisir une image'"
-              :loading="uploading"
-              @click="triggerImageInput" />
-          </div>
-          <input id="category-image-upload" type="file" class="hidden" accept="image/*" @change="onImageChange" />
+            label="Activer le groupe"
+            :description="form.status ? 'Visible sur la boutique' : 'Masqué sur la boutique'" />
         </UFormField>
       </form>
     </template>
@@ -328,10 +341,9 @@ async function confirmDelete() {
     </template>
   </UModal>
 
-  <!-- Delete confirmation modal -->
   <UModal
     v-model:open="deleteModalOpen"
-    title="Supprimer la catégorie"
+    title="Supprimer le groupe"
     description="Cette action est irréversible."
     :ui="{
       header: 'sm:p-3 p-3 border-none',
@@ -341,9 +353,9 @@ async function confirmDelete() {
     }"
     @close="closeDeleteModal">
     <template #body>
-      <p v-if="deletingCategory" class="text-neutral-600">
+      <p v-if="deletingGroup" class="text-neutral-600">
         Êtes-vous sûr de vouloir supprimer
-        <strong>{{ deletingCategory.name }}</strong>
+        <strong>{{ deletingGroup.name }}</strong>
         ?
       </p>
     </template>
