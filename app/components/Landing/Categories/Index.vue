@@ -30,6 +30,8 @@ const props = withDefaults(
         :slides-to-scroll="1"
         prev-icon="i-lucide-chevron-left"
         next-icon="i-lucide-chevron-right"
+        loop
+        wheel-gestures
         :prev="{ color: 'neutral', variant: 'ghost', size: 'lg' }"
         :next="{ color: 'neutral', variant: 'ghost', size: 'lg' }"
         :ui="{
