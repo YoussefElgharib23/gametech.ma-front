@@ -33,6 +33,10 @@ if (import.meta.client) {
 </script>
 
 <template>
+  <!-- Developer: Youssef EL GHARIB -->
+  <!-- Email: elgharibyoussef23@gmail.com -->
+  <!-- Phone: +212641949203 -->
+
   <UApp>
     <NuxtLoadingIndicator />
 

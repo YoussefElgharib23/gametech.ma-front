@@ -42,6 +42,14 @@ function handleProductSelected(product: ConfiguratorProduct) {
 }
 
 const addingToCart = ref(false);
+const requestingDevis = ref(false);
+const devisModalOpen = ref(false);
+const devisForm = ref({
+  name: "",
+  email: "",
+  phone: "",
+  address: "",
+});
 
 async function addAllToCart() {
   const products = allSelectedProducts.value;
@@ -68,6 +76,66 @@ async function addAllToCart() {
     });
   } finally {
     addingToCart.value = false;
+  }
+}
+
+function openDevisModal() {
+  if (totalProducts.value === 0) return;
+  devisModalOpen.value = true;
+}
+
+function closeDevisModal() {
+  devisModalOpen.value = false;
+}
+
+function validateDevisForm(): boolean {
+  return (
+    devisForm.value.name.trim().length > 0 &&
+    devisForm.value.email.trim().length > 0 &&
+    devisForm.value.phone.trim().length > 0 &&
+    devisForm.value.address.trim().length > 0
+  );
+}
+
+async function submitDevis() {
+  const products = allSelectedProducts.value;
+  if (products.length === 0) return;
+  if (!validateDevisForm()) {
+    toast.add({
+      title: "Informations requises",
+      description: "Veuillez remplir Nom, Email, Téléphone et Adresse.",
+      color: "error",
+    });
+    return;
+  }
+
+  requestingDevis.value = true;
+  try {
+    const res = await $apiFetch<{ url: string }>("/devis/pc-config", {
+      method: "POST",
+      body: {
+        customer: {
+          name: devisForm.value.name.trim(),
+          email: devisForm.value.email.trim(),
+          phone: devisForm.value.phone.trim(),
+          address: devisForm.value.address.trim(),
+        },
+        items: products.map((p) => ({ product_id: p.id, quantity: 1 })),
+      },
+    });
+
+    if (import.meta.client) {
+      window.open(res.url, "_blank", "noopener,noreferrer");
+    }
+    closeDevisModal();
+  } catch {
+    toast.add({
+      title: "Erreur",
+      description: "Impossible de générer le devis pour le moment.",
+      color: "error",
+    });
+  } finally {
+    requestingDevis.value = false;
   }
 }
 
@@ -333,6 +401,17 @@ useSeoMeta({
                     @click="addAllToCart" />
 
                   <UButton
+                    block
+                    size="lg"
+                    variant="soft"
+                    color="primary"
+                    :disabled="totalProducts === 0 || requestingDevis"
+                    :loading="requestingDevis"
+                    icon="i-lucide-file-text"
+                    label="Demander le devis"
+                    @click="openDevisModal" />
+
+                  <UButton
                     v-if="totalProducts > 0"
                     block
                     size="lg"
@@ -355,6 +434,46 @@ useSeoMeta({
         :selected-ids="pickerSelectedIds"
         @select="handleProductSelected"
         @close="pickerOpen = false" />
+
+      <UModal
+        v-model:open="devisModalOpen"
+        title="Demander un devis"
+        :ui="{
+          header: 'sm:p-3 p-3',
+          body: 'sm:p-3 p-3',
+          footer: 'sm:p-3 p-3',
+          content: 'divide-y-0',
+        }"
+        @close="closeDevisModal">
+        <template #body>
+          <form class="space-y-3" @submit.prevent="submitDevis">
+            <UFormField label="Nom" required class="w-full">
+              <UInput v-model="devisForm.name" size="md" placeholder="Votre nom" class="w-full" />
+            </UFormField>
+            <UFormField label="Email" required class="w-full">
+              <UInput v-model="devisForm.email" type="email" size="md" placeholder="vous@exemple.com" class="w-full" />
+            </UFormField>
+            <UFormField label="Téléphone" required class="w-full">
+              <UInput v-model="devisForm.phone" size="md" placeholder="+212 ..." class="w-full" />
+            </UFormField>
+            <UFormField label="Adresse" required class="w-full">
+              <UTextarea v-model="devisForm.address" :rows="4" size="md" placeholder="Votre adresse complète" class="w-full" />
+            </UFormField>
+          </form>
+        </template>
+        <template #footer>
+          <div class="flex justify-end gap-2">
+            <UButton color="neutral" variant="outline" label="Annuler" :disabled="requestingDevis" @click="closeDevisModal" />
+            <UButton
+              color="primary"
+              label="Générer le devis"
+              icon="i-lucide-file-text"
+              :loading="requestingDevis"
+              :disabled="!validateDevisForm() || requestingDevis"
+              @click="submitDevis" />
+          </div>
+        </template>
+      </UModal>
     </UContainer>
   </div>
 </template>
