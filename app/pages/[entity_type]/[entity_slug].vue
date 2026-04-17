@@ -347,6 +347,7 @@ useSeoMeta({
             :key="product.id"
             :to="`/products/${product.slug}`"
             :image="product.image ?? ''"
+            :images="product.images ?? []"
             :brand-name="product.brand"
             :brand-image="product.brand_image ?? ''"
             :title="product.title"

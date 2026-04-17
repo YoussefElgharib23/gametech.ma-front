@@ -284,10 +284,14 @@ const topContactLine = computed(() => {
         </template>
       </UHeader>
 
-      <div class="bg-neutral-950 sticky top-0 ring ring-muted/20">
+      <div class="bg-neutral-950 sticky top-0 ring ring-muted/20 sm:block hidden">
         <UContainer>
           <LandingHeaderNav />
         </UContainer>
+      </div>
+
+      <div class="px-4 mt-4">
+        <LandingHeaderSearch />
       </div>
     </div>
 

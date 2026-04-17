@@ -164,6 +164,7 @@ const sectionListingPath = `/section/${VENTE_FLASH_SECTION_SLUG}`;
             <ProductCard
               :to="`/products/${product.slug}`"
               :image="product.image ?? ''"
+              :images="product.images ?? []"
               :stock-status="product.stockStatus"
               :title="product.title"
               :current-price="product.priceLabel"
@@ -173,6 +174,7 @@ const sectionListingPath = `/section/${VENTE_FLASH_SECTION_SLUG}`;
             <ProductCard
               :to="`/products/${flashProductsList[flashProductsList.length - 1].slug}`"
               :image="flashProductsList[flashProductsList.length - 1].image ?? ''"
+              :images="flashProductsList[flashProductsList.length - 1].images ?? []"
               :stock-status="flashProductsList[flashProductsList.length - 1].stockStatus"
               :title="flashProductsList[flashProductsList.length - 1].title"
               :current-price="flashProductsList[flashProductsList.length - 1].priceLabel"

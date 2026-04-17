@@ -2,6 +2,7 @@
 interface Props {
   to?: string;
   image?: string;
+  images?: string[];
   brandImage?: string;
   brandName?: string;
   stockStatus?: string;
@@ -13,6 +14,7 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   to: "#",
   image: "",
+  images: () => [],
   brandImage: "",
   brandName: "",
   stockStatus: "EN STOCK",
@@ -22,6 +24,46 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<{ "add-to-cart": [] }>();
 const recentlyAdded = ref(false);
 let resetTimer: ReturnType<typeof setTimeout> | null = null;
+
+const hoverIndex = ref(0);
+const isHovering = ref(false);
+const imageAreaRef = ref<HTMLElement | null>(null);
+let rafId: number | null = null;
+
+const availableImages = computed<string[]>(() => {
+  const list = (props.images ?? []).filter(Boolean);
+  if (list.length) return list;
+  return props.image ? [props.image] : [];
+});
+
+const displayedImage = computed(() => {
+  const list = availableImages.value;
+  if (!list.length) return "";
+  const idx = Math.min(Math.max(hoverIndex.value, 0), list.length - 1);
+  return list[idx] ?? list[0] ?? "";
+});
+
+function onMouseLeaveImages() {
+  isHovering.value = false;
+  hoverIndex.value = 0;
+}
+
+function onMouseMoveImages(e: MouseEvent) {
+  if (availableImages.value.length <= 1) return;
+  isHovering.value = true;
+
+  if (rafId != null) return;
+  rafId = requestAnimationFrame(() => {
+    rafId = null;
+    const el = imageAreaRef.value;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const x = Math.min(Math.max(e.clientX - rect.left, 0), rect.width);
+    const segments = availableImages.value.length;
+    const idx = Math.min(segments - 1, Math.floor((x / Math.max(rect.width, 1)) * segments));
+    hoverIndex.value = idx;
+  });
+}
 
 const normalizedStockStatus = computed(() => (props.stockStatus ?? "").trim().toLowerCase());
 
@@ -54,6 +96,7 @@ function onAddToCart(e: MouseEvent) {
 
 onBeforeUnmount(() => {
   if (resetTimer) clearTimeout(resetTimer);
+  if (rafId != null) cancelAnimationFrame(rafId);
 });
 </script>
 
@@ -64,14 +107,20 @@ onBeforeUnmount(() => {
     <!-- Image block with overlaid badge -->
     <div class="relative">
       <div
-        class="relative flex min-h-[120px] items-center justify-center overflow-hidden rounded-lg bg-white p-2 sm:min-h-[200px] sm:p-3">
-        <NuxtImg
-          v-if="image"
-          :src="image"
-          :alt="title"
-          class="h-[140px] w-full object-contain transition-transform duration-300 group-hover:scale-105 sm:h-[260px]"
-          loading="lazy" />
-        <UIcon v-else name="i-lucide-image" class="text-3xl text-neutral-400 sm:text-4xl" />
+        ref="imageAreaRef"
+        class="relative flex items-center justify-center overflow-hidden rounded-lg bg-white p-2 min-h-[180px] sm:min-h-[200px] sm:p-3"
+        @mousemove="onMouseMoveImages"
+        @mouseleave="onMouseLeaveImages">
+        <Transition name="product-card-img" mode="out-in">
+          <NuxtImg
+            v-if="displayedImage"
+            :key="displayedImage"
+            :src="displayedImage"
+            :alt="title"
+            class="h-[140px] w-full object-contain transition-transform duration-300 group-hover:scale-105 sm:h-[260px]"
+            loading="lazy" />
+          <UIcon v-else key="no-image" name="i-lucide-image" class="text-3xl text-neutral-400 sm:text-4xl" />
+        </Transition>
 
         <!-- Promo: absolute top-right on image (same layout for all cards) -->
         <div
@@ -86,6 +135,28 @@ onBeforeUnmount(() => {
           :class="stockBadgeClass">
           {{ stockStatus }}
         </span>
+
+        <div v-if="availableImages.length > 1" class="pointer-events-none">
+          <!-- Dots navigation -->
+          <div
+            class="absolute bottom-2 left-1/2 -translate-x-1/2 flex items-center gap-1.5 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+            <span
+              v-for="(_, i) in availableImages"
+              :key="i"
+              class="size-1.5 rounded-full bg-neutral-900/30 ring-1 ring-white/50"
+              :class="{ 'bg-primary': hoverIndex === i }" />
+          </div>
+
+          <!-- Progress bar -->
+          <div
+            class="absolute bottom-1.5 right-1.5 left-1.5 flex gap-1 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+            <span
+              v-for="(_, i) in availableImages"
+              :key="i"
+              class="h-0.5 flex-1 rounded bg-white/50"
+              :class="{ 'bg-brand-accent-500': hoverIndex === i }" />
+          </div>
+        </div>
       </div>
     </div>
 
@@ -106,8 +177,7 @@ onBeforeUnmount(() => {
         </span>
       </div>
 
-      <h3
-        class="mb-2 line-clamp-2 h-[36px] text-xs font-semibold text-neutral-900 sm:mb-3 sm:h-[40px] sm:text-sm">
+      <h3 class="mb-2 line-clamp-2 h-[36px] text-xs font-semibold text-neutral-900 sm:mb-3 sm:h-[40px] sm:text-sm">
         {{ title }}
       </h3>
 
@@ -116,9 +186,7 @@ onBeforeUnmount(() => {
           <span v-if="oldPrice" class="text-xs tabular-nums text-neutral-400 line-through sm:text-sm">
             {{ oldPrice }}
           </span>
-          <span
-            class="text-base font-bold tabular-nums text-primary-700 sm:text-lg"
-            :class="{ 'mt-3 sm:mt-[18px]': !oldPrice }">
+          <span class="text-base font-bold tabular-nums text-primary-700 sm:text-lg" :class="{ 'mt-3 sm:mt-[18px]': !oldPrice }">
             {{ currentPrice }}
           </span>
         </div>
@@ -135,3 +203,22 @@ onBeforeUnmount(() => {
     </div>
   </NuxtLink>
 </template>
+
+<style scoped>
+.product-card-img-enter-active,
+.product-card-img-leave-active {
+  transition: opacity 160ms ease, transform 220ms ease;
+}
+
+.product-card-img-enter-from,
+.product-card-img-leave-to {
+  opacity: 0;
+  transform: translateX(6px);
+}
+
+.product-card-img-enter-to,
+.product-card-img-leave-from {
+  opacity: 1;
+  transform: translateX(0);
+}
+</style>

@@ -151,7 +151,7 @@ const scrollNext = () => categoryCarousel.value?.emblaApi?.scrollNext();
           :color="activeCategory === cat.value ? 'primary' : 'neutral'"
           :variant="activeCategory === cat.value ? 'solid' : 'outline'"
           class="group shrink-0 justify-center uppercase font-semibold whitespace-nowrap lg:w-full lg:whitespace-normal lg:justify-start lg:text-left"
-          size="md"
+          size="lg"
           @click="activeCategory = cat.value">
           <span
             :class="[
@@ -184,6 +184,7 @@ const scrollNext = () => categoryCarousel.value?.emblaApi?.scrollNext();
             <ProductCard
               :to="`/products/${item.slug}`"
               :image="item.image ?? ''"
+              :images="'images' in item ? item.images ?? [] : []"
               :stock-status="item.stockStatus"
               :title="item.title"
               :current-price="item.currentPrice"

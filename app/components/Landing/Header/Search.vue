@@ -64,7 +64,7 @@ watch(
 </script>
 
 <template>
-  <UPopover v-model:open="open" :dismissible="false" :ui="{ content: 'w-[500px] p-0' }" class="">
+  <UPopover v-model:open="open" :dismissible="false" :ui="{ content: 'w-full sm:w-[500px] p-0' }" class="w-full">
     <template #anchor>
       <UInput
         v-model="searchTerm"
@@ -72,13 +72,13 @@ watch(
         trailing-icon="i-lucide-search"
         class="relative z-50"
         :ui="{
-          base: 'h-10 w-[500px]',
+          base: 'h-10 w-full sm:w-[500px]',
         }"
         @focus="open = true" />
     </template>
 
     <template #content>
-      <div class="max-h-80 overflow-y-auto">
+      <div class="max-h-80 overflow-y-auto w-full">
         <div class="flex items-center justify-between px-3 py-2 border-b border-neutral-100">
           <span class="text-xs font-medium text-neutral-600">Résultats de recherche</span>
           <button type="button" class="text-[11px] text-neutral-400 hover:text-neutral-600" @click="open = false">Fermer</button>

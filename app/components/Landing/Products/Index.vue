@@ -6,6 +6,7 @@ export interface LandingProductCard {
   slug: string;
   title: string;
   image: string | null;
+  images?: string[];
   stockStatus: string;
   currentPrice: string;
   oldPrice?: string | null;
@@ -34,6 +35,7 @@ function demoCard(id: number, slug: string, title: string, currentPrice: string,
     slug,
     title,
     image: demoImage,
+    images: [demoImage],
     stockStatus: "EN STOCK",
     currentPrice,
     oldPrice: oldPrice ?? undefined,
@@ -178,6 +180,7 @@ const scrollNext = () => {
           <ProductCard
             :to="`/products/${item.slug}`"
             :image="item.image ?? ''"
+            :images="item.images ?? []"
             :stock-status="item.stockStatus"
             :title="item.title"
             :current-price="item.currentPrice"
@@ -203,6 +206,7 @@ const scrollNext = () => {
           <ProductCard
             :to="`/products/${item.slug}`"
             :image="item.image ?? ''"
+            :images="item.images ?? []"
             :stock-status="item.stockStatus"
             :title="item.title"
             :current-price="item.currentPrice"
