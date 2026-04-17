@@ -290,7 +290,7 @@ const topContactLine = computed(() => {
         </UContainer>
       </div>
 
-      <div class="px-4 mt-4">
+      <div class="px-4 my-4 sm:hidden block">
         <LandingHeaderSearch />
       </div>
     </div>
