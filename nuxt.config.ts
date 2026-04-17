@@ -1,13 +1,7 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-  modules: [
-    "@nuxt/eslint", // '@nuxt/fonts',
-    "@nuxt/ui",
-    "@nuxt/image",
-    "@nuxtjs/device",
-    "@nuxtjs/i18n",
-    "@vueuse/nuxt",
-  ],
+  modules: [// '@nuxt/fonts',
+  "@nuxt/eslint", "@nuxt/ui", "@nuxt/image", "@nuxtjs/device", "@nuxtjs/i18n", "@vueuse/nuxt", "nuxt-swiper"],
 
   routeRules: {
     "/": { prerender: false },
