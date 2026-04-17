@@ -64,13 +64,13 @@ watch(
 </script>
 
 <template>
-  <UPopover v-model:open="open" :dismissible="false" :ui="{ content: 'w-full sm:w-[500px] p-0' }" class="w-full">
+  <UPopover v-model:open="open" :dismissible="false" :ui="{ content: 'w-full sm:w-[500px] p-0' }" class="">
     <template #anchor>
       <UInput
         v-model="searchTerm"
         placeholder="Rechercher dans le catalogue"
         trailing-icon="i-lucide-search"
-        class="relative z-50"
+        class="relative z-50 w-full"
         :ui="{
           base: 'h-10 w-full sm:w-[500px]',
         }"
@@ -139,3 +139,11 @@ watch(
     </template>
   </UPopover>
 </template>
+
+<style>
+@media (max-width: 640px) {
+  [data-reka-popper-content-wrapper] {
+    min-width: 92% !important;
+  }
+}
+</style>
