@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { useSortable } from "@vueuse/integrations/useSortable";
+
 definePageMeta({
   layout: "dashboard",
 });
@@ -22,7 +24,110 @@ const filteredCategories = computed(() => {
   return list.filter((cat) => [cat.name, cat.slug].filter(Boolean).some((field) => field!.toLowerCase().includes(term)));
 });
 
+const toast = useToast();
+const reorderMode = ref(false);
+const savingOrder = ref(false);
+const reorderData = ref<Category[]>([]);
+const reorderSnapshotIds = ref<number[]>([]);
+const sortable = shallowRef<any>(null);
+
+const sortedCategories = computed(() => {
+  return (categoriesData.value ?? []).slice().sort((a, b) => a.position - b.position || a.id - b.id);
+});
+
+const tableData = computed(() => (reorderMode.value ? reorderData.value : filteredCategories.value));
+const tableUi = computed(() => (reorderMode.value ? { tbody: "categories-table-tbody" } : undefined));
+
+watch(
+  () => categoriesData.value,
+  () => {
+    if (reorderMode.value) {
+      return;
+    }
+    reorderData.value = sortedCategories.value.slice();
+  },
+  { immediate: true },
+);
+
+async function beginReorder(): Promise<void> {
+  if (search.value.trim()) {
+    toast.add({
+      title: "Désactivez la recherche",
+      description: "Pour réordonner, videz d’abord le champ de recherche.",
+      color: "neutral",
+    });
+    return;
+  }
+
+  reorderData.value = sortedCategories.value.slice();
+  reorderSnapshotIds.value = reorderData.value.map((c) => c.id);
+  reorderMode.value = true;
+
+  await nextTick();
+  sortable.value?.destroy?.();
+  sortable.value = useSortable(".categories-table-tbody", reorderData, {
+    animation: 150,
+    handle: ".category-drag-handle",
+  });
+}
+
+function endReorder(): void {
+  reorderMode.value = false;
+  sortable.value?.destroy?.();
+  sortable.value = null;
+}
+
+function cancelReorder(): void {
+  const list = categoriesData.value ?? [];
+  const byId = new Map(list.map((c) => [c.id, c]));
+  reorderData.value = reorderSnapshotIds.value.map((id) => byId.get(id)).filter(Boolean) as Category[];
+  endReorder();
+}
+
+async function saveReorder(): Promise<void> {
+  if (!reorderMode.value) {
+    return;
+  }
+
+  const updates: Array<{ id: number; position: number }> = [];
+  for (let i = 0; i < reorderData.value.length; i++) {
+    const cat = reorderData.value[i]!;
+    if (cat.position !== i) {
+      updates.push({ id: cat.id, position: i });
+    }
+  }
+
+  if (!updates.length) {
+    toast.add({ title: "Ordre inchangé", color: "neutral" });
+    endReorder();
+    return;
+  }
+
+  savingOrder.value = true;
+  try {
+    for (const u of updates) {
+      await $apiFetch(`/categories/${u.id}`, {
+        method: "PUT",
+        body: { position: u.position },
+      });
+    }
+
+    toast.add({ title: "Ordre enregistré", color: "success" });
+    endReorder();
+    await refresh();
+  } catch {
+    toast.add({ title: "Erreur lors de l’enregistrement de l’ordre", color: "error" });
+  } finally {
+    savingOrder.value = false;
+  }
+}
+
 const categoryColumns = [
+  {
+    id: "drag",
+    header: "",
+    meta: { class: { th: "w-10", td: "w-10" } },
+  },
   {
     accessorKey: "name",
     header: "Catégorie",
@@ -40,7 +145,6 @@ const categoryColumns = [
   },
 ];
 
-const toast = useToast();
 const modalOpen = ref(false);
 const deleteModalOpen = ref(false);
 const editingId = ref<number | null>(null);
@@ -186,7 +290,33 @@ async function confirmDelete() {
     <template #header>
       <UDashboardNavbar title="Catégories">
         <template #right>
-          <UButton icon="i-lucide-plus" label="Ajouter une catégorie" color="primary" @click="openCreate" />
+          <div class="flex items-center gap-2">
+            <template v-if="!reorderMode">
+              <UButton icon="i-lucide-arrow-up-down" label="Réordonner" color="neutral" variant="soft" @click="beginReorder" />
+            </template>
+            <template v-else>
+              <UButton
+                icon="i-lucide-x"
+                label="Annuler"
+                color="neutral"
+                variant="outline"
+                :disabled="savingOrder"
+                @click="cancelReorder" />
+              <UButton
+                icon="i-lucide-check"
+                label="Enregistrer l’ordre"
+                color="primary"
+                :loading="savingOrder"
+                @click="saveReorder" />
+            </template>
+
+            <UButton
+              icon="i-lucide-plus"
+              label="Ajouter une catégorie"
+              color="primary"
+              :disabled="savingOrder"
+              @click="openCreate" />
+          </div>
         </template>
       </UDashboardNavbar>
     </template>
@@ -208,7 +338,19 @@ async function confirmDelete() {
           Aucune catégorie. Cliquez sur « Ajouter une catégorie » pour commencer.
         </div>
 
-        <UTable v-else :data="filteredCategories" :columns="categoryColumns">
+        <UTable v-else :data="tableData" :columns="categoryColumns" :ui="tableUi">
+          <template #drag-cell>
+            <div class="flex justify-center">
+              <UButton
+                v-if="reorderMode"
+                class="category-drag-handle cursor-move"
+                icon="i-lucide-grip-vertical"
+                color="neutral"
+                variant="ghost"
+                size="xs"
+                aria-label="Déplacer" />
+            </div>
+          </template>
           <template #name-cell="{ row }">
             <div class="flex items-center gap-3">
               <div class="h-10 w-10 shrink-0 overflow-hidden rounded border border-neutral-200 bg-neutral-100">
@@ -233,35 +375,37 @@ async function confirmDelete() {
           </template>
           <template #actions-cell="{ row }">
             <div class="inline-flex items-center justify-end gap-1 rounded-lg border border-neutral-200 bg-neutral-50 p-1">
-              <UTooltip :delay-duration="0" text="Groupes">
-                <UButton
-                  icon="i-lucide-layers"
-                  color="neutral"
-                  variant="ghost"
-                  size="xs"
-                  aria-label="Groupes"
-                  :to="`/dashboard/category-groups?category_id=${row.original.id}`" />
-              </UTooltip>
-              <USeparator orientation="vertical" class="h-4" />
-              <UTooltip :delay-duration="0" text="Modifier">
-                <UButton
-                  icon="i-lucide-pencil"
-                  color="neutral"
-                  variant="ghost"
-                  size="xs"
-                  aria-label="Modifier"
-                  @click="openEdit(row.original)" />
-              </UTooltip>
-              <USeparator orientation="vertical" class="h-4" />
-              <UTooltip :delay-duration="0" text="Supprimer">
-                <UButton
-                  icon="i-lucide-trash-2"
-                  color="error"
-                  variant="ghost"
-                  size="xs"
-                  aria-label="Supprimer"
-                  @click="openDelete(row.original)" />
-              </UTooltip>
+              <template v-if="!reorderMode">
+                <UTooltip :delay-duration="0" text="Groupes">
+                  <UButton
+                    icon="i-lucide-layers"
+                    color="neutral"
+                    variant="ghost"
+                    size="xs"
+                    aria-label="Groupes"
+                    :to="`/dashboard/category-groups?category_id=${row.original.id}`" />
+                </UTooltip>
+                <USeparator orientation="vertical" class="h-4" />
+                <UTooltip :delay-duration="0" text="Modifier">
+                  <UButton
+                    icon="i-lucide-pencil"
+                    color="neutral"
+                    variant="ghost"
+                    size="xs"
+                    aria-label="Modifier"
+                    @click="openEdit(row.original)" />
+                </UTooltip>
+                <USeparator orientation="vertical" class="h-4" />
+                <UTooltip :delay-duration="0" text="Supprimer">
+                  <UButton
+                    icon="i-lucide-trash-2"
+                    color="error"
+                    variant="ghost"
+                    size="xs"
+                    aria-label="Supprimer"
+                    @click="openDelete(row.original)" />
+                </UTooltip>
+              </template>
             </div>
           </template>
         </UTable>
