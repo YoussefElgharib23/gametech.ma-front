@@ -1,12 +1,47 @@
 <script setup lang="ts">
+import type { CategoriesWithChildrenResponse } from "~/components/Landing/Header/Nav.vue";
+
 const cartOpen = ref(false);
 const { items, itemsCount, subtotalLabel, shippingLabel, grandTotalLabel, pending, incrementItem, decrementItem, removeItem } =
   useCart();
 
+const route = useRoute();
 const { storeSettings, load } = useStoreSettings();
 await load();
 
 const { isMegaMenuOpen } = useNavMegaMenuOverlay();
+
+const currentHighlightedCategory = ref<"menu" | "special" | null>("menu");
+const currentOpenedCategory = ref<any>();
+
+watch(
+  () => route.path,
+  () => {
+    currentHighlightedCategory.value = "menu";
+    currentOpenedCategory.value = undefined;
+  },
+);
+
+const { data: navCategories } = await useNuxtData<CategoriesWithChildrenResponse>("navCategories");
+
+/** Client route: same two-segment pattern as `app/pages/[entity_type]/[entity_slug].vue`. */
+function entityPagePath(entityType: string, slug: string): string {
+  return `/${entityType}/${slug}`;
+}
+
+const megaMenuCategories = computed(() => {
+  return navCategories.value?.categories.map((category) => ({
+    id: category.id,
+    label: category.name,
+    to: entityPagePath("category", category.slug),
+    icon: category.icon,
+    groups: category.groups.map((group) => ({
+      id: group.id,
+      label: group.name,
+      to: entityPagePath("group", group.slug),
+    })),
+  }));
+});
 
 const topContactLine = computed(() => {
   const parts: string[] = [];
@@ -38,7 +73,11 @@ const topContactLine = computed(() => {
         </UContainer>
       </div>
 
-      <UHeader class="static">
+      <UHeader
+        class="static"
+        :ui="{
+          body: 'sm:p-0 p-0',
+        }">
         <template #left>
           <NuxtLink to="/">
             <AppLogo class="w-auto h-6 shrink-0" />
@@ -162,6 +201,86 @@ const topContactLine = computed(() => {
               </div>
             </template>
           </USlideover>
+        </template>
+
+        <template #body>
+          <div v-if="!currentOpenedCategory?.id" class="grid grid-cols-2 border-y-2 border-secondary">
+            <button
+              @click.prevent="currentHighlightedCategory = 'menu'"
+              :class="[
+                'h-[35px] text-sm uppercase font-medium',
+                currentHighlightedCategory === 'menu' ? 'bg-secondary-500 text-secondary-950' : '',
+              ]">
+              Menu
+            </button>
+            <button
+              @click.prevent="currentHighlightedCategory = 'special'"
+              :class="[
+                'h-[35px] text-sm uppercase font-medium',
+                currentHighlightedCategory === 'special' ? 'bg-secondary-500 text-secondary-950' : '',
+              ]">
+              SPÉCIAL
+            </button>
+          </div>
+          <div v-else-if="currentOpenedCategory.id && currentHighlightedCategory == 'menu'">
+            <button
+              @click.prevent="currentOpenedCategory = undefined"
+              class="bg-secondary-500 text-secondary-950 h-[35px] uppercase font-medium flex items-center gap-x-1 w-full justify-start text-sm px-4">
+              <UIcon name="i-lucide-chevron-left" class="size-4" />
+              <span>Retour</span>
+            </button>
+          </div>
+
+          <div v-if="currentHighlightedCategory === 'menu'">
+            <div v-if="currentOpenedCategory?.id === undefined" class="divide-y divide-secondary border-b border-secondary">
+              <NuxtLink to="/pc-config-builder" class="flex items-center gap-2 h-[45px] px-4 w-full font-medium">
+                <UIcon name="i-lucide-cpu" class="size-5" />
+                <span class="text-sm">Configurateur PC</span>
+              </NuxtLink>
+              <button
+                v-for="item in megaMenuCategories"
+                :key="item.label"
+                class="flex items-center gap-2 h-[45px] px-4 w-full font-medium"
+                @click="currentOpenedCategory = item">
+                <div v-if="item.icon" class="size-5 rounded overflow-hidden">
+                  <img :src="item.icon" class="size-full object-cover" />
+                </div>
+                <Icon v-else name="i-lucide-image" class="size-4" />
+                <span class="text-sm">{{ item.label }}</span>
+
+                <Icon name="i-lucide-chevron-right" class="size-4 ms-auto" />
+              </button>
+            </div>
+
+            <div v-else-if="currentOpenedCategory.id !== undefined" class="divide-y divide-secondary border-b border-secondary">
+              <NuxtLink
+                :to="group.to"
+                class="flex w-full flex-1 py-2 px-4 text-sm font-medium"
+                v-for="group in currentOpenedCategory.groups">
+                {{ group.label }}
+              </NuxtLink>
+            </div>
+          </div>
+
+          <div v-if="currentHighlightedCategory === 'special'" class="divide-y divide-secondary border-b border-secondary">
+            <NuxtLink to="/" class="flex items-center text-sm h-[45px] px-4 w-full font-medium">
+              <span>TOUS NOS PRODUITS</span>
+            </NuxtLink>
+            <NuxtLink to="/pc-config-builder" class="flex items-center uppercase text-sm h-[45px] px-4 w-full font-medium">
+              <span>CONFIGURATEUR PC</span>
+            </NuxtLink>
+            <NuxtLink to="/section/nouvel-arrivage" class="flex items-center uppercase text-sm h-[45px] px-4 w-full font-medium">
+              Nouvel arrivage
+            </NuxtLink>
+            <NuxtLink
+              to="/section/meilleures-ventes"
+              class="flex items-center uppercase text-sm h-[45px] px-4 w-full font-medium">
+              Meilleures ventes
+            </NuxtLink>
+            <NuxtLink to="/section/promotion" class="flex items-center uppercase text-sm h-[45px] px-4 w-full font-medium">
+              Promotion
+            </NuxtLink>
+          </div>
         </template>
       </UHeader>
 

@@ -21,6 +21,9 @@ const containerRef = ref(null);
 
 const swiper = useSwiper(containerRef, {
   loop: true,
+  autoplay: {
+    delay: 3000,
+  },
   slidesPerView: 2,
   spaceBetween: 16,
   breakpoints: {

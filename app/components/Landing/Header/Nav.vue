@@ -55,7 +55,7 @@ interface NavCategory {
   groups: NavGroup[];
 }
 
-interface CategoriesWithChildrenResponse {
+export interface CategoriesWithChildrenResponse {
   categories: NavCategory[];
 }
 
@@ -79,7 +79,9 @@ watch(open, (value) => setMegaMenuOpen(value), { immediate: true });
 
 onBeforeUnmount(() => setMegaMenuOpen(false));
 
-const { data: categoriesData } = await useAPIFetch<CategoriesWithChildrenResponse>("/categories/with-children");
+const { data: categoriesData } = await useAsyncData<CategoriesWithChildrenResponse>("navCategories", () =>
+  $apiFetch("/categories/with-children"),
+);
 
 const currentHoverCategory = ref<MegaMenuCategory | null>(null);
 const navCategories = computed(() => categoriesData.value?.categories ?? []);
@@ -179,7 +181,9 @@ const quickLinks = [
           @mouseenter="currentHoverCategory = category"
           @mouseleave="currentHoverCategory = null">
           <NuxtLink :to="category.link" class="flex items-center gap-2 text-start px-2 text-sm h-10 w-full hover:bg-neutral-50">
-            <img v-if="category.icon" :src="category.icon" :alt="`${category.label} icon`" class="size-4" />
+            <div v-if="category.icon" class="size-6 rounded overflow-hidden">
+              <img :src="category.icon" :alt="`${category.label} icon`" class="size-full object-cover" />
+            </div>
             <UIcon v-else name="i-lucide-image" class="size-4" />
             <span>{{ category.label }}</span>
 

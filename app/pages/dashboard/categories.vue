@@ -10,6 +10,7 @@ interface Category {
   name: string;
   slug: string;
   image: string | null;
+  icon: string | null;
   status: "active" | "inactive";
   position: number;
 }
@@ -154,12 +155,18 @@ const uploading = ref(false);
 const form = ref({
   name: "",
   image: "",
+  icon: "",
   status: true as boolean, // true = active, false = inactive
   position: 0,
 });
 
 function triggerImageInput() {
   const input = document.getElementById("category-image-upload") as HTMLInputElement | null;
+  input?.click();
+}
+
+function triggerIconInput() {
+  const input = document.getElementById("category-icon-upload") as HTMLInputElement | null;
   input?.click();
 }
 
@@ -185,12 +192,34 @@ function clearImage() {
   form.value.image = "";
 }
 
+async function onIconChange(event: Event) {
+  const target = event.target as HTMLInputElement;
+  const file = target.files?.[0];
+  if (!file) return;
+  uploading.value = true;
+  try {
+    const body = new FormData();
+    body.append("file", file);
+    body.append("directory", "categories/icons");
+    const upload = await $apiFetch<{ id: number; url: string }>("/uploads/preview", { method: "POST", body });
+    form.value.icon = upload.url;
+  } catch {
+  } finally {
+    uploading.value = false;
+    target.value = "";
+  }
+}
+
+function clearIcon() {
+  form.value.icon = "";
+}
+
 const isEditing = computed(() => editingId.value != null);
 const modalTitle = computed(() => (isEditing.value ? "Modifier la catégorie" : "Nouvelle catégorie"));
 
 function openCreate() {
   editingId.value = null;
-  form.value = { name: "", image: "", status: true, position: 0 };
+  form.value = { name: "", image: "", icon: "", status: true, position: 0 };
   modalOpen.value = true;
 }
 
@@ -199,6 +228,7 @@ function openEdit(cat: Category) {
   form.value = {
     name: cat.name,
     image: cat.image ?? "",
+    icon: cat.icon ?? "",
     status: cat.status === "active",
     position: cat.position,
   };
@@ -236,6 +266,7 @@ async function submitForm() {
         body: {
           name: form.value.name.trim(),
           image: form.value.image.trim() || null,
+          icon: form.value.icon.trim() || null,
           status: form.value.status ? "active" : "inactive",
           position: form.value.position,
         },
@@ -247,6 +278,7 @@ async function submitForm() {
         body: {
           name: form.value.name.trim(),
           image: form.value.image.trim() || null,
+          icon: form.value.icon.trim() || null,
           status: form.value.status ? "active" : "inactive",
           position: form.value.position,
         },
@@ -461,6 +493,34 @@ async function confirmDelete() {
               @click="triggerImageInput" />
           </div>
           <input id="category-image-upload" type="file" class="hidden" accept="image/*" @change="onImageChange" />
+        </UFormField>
+
+        <UFormField label="Icône (optionnel)" class="w-full">
+          <div class="flex w-full flex-col items-start gap-3">
+            <div
+              v-if="form.icon"
+              class="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg border border-neutral-200 bg-neutral-100 flex items-center justify-center">
+              <img :src="form.icon" alt="Icône" class="h-full w-full object-contain p-1" />
+              <UButton
+                icon="i-lucide-x"
+                color="error"
+                variant="outline"
+                size="xs"
+                class="absolute right-1 top-1"
+                aria-label="Supprimer l'icône"
+                @click="clearIcon" />
+            </div>
+            <UButton
+              color="neutral"
+              variant="soft"
+              size="lg"
+              icon="i-lucide-upload-cloud"
+              class="max-w-xs"
+              :label="uploading ? 'Téléchargement…' : form.icon ? 'Changer l\'icône' : 'Choisir une icône'"
+              :loading="uploading"
+              @click="triggerIconInput" />
+          </div>
+          <input id="category-icon-upload" type="file" class="hidden" accept="image/*,.svg" @change="onIconChange" />
         </UFormField>
       </form>
     </template>
