@@ -197,7 +197,7 @@ watch(
       <!-- Product carousel -->
       <div class="min-w-0 flex-1">
         <ClientOnly>
-          <swiper-container ref="productsSwiperRef" :init="false" :key="activeCategory">
+          <swiper-container ref="productsSwiperRef" :init="false" :key="activeCategory" class="w-full">
             <swiper-slide v-for="item in currentProducts" :key="item.id">
               <div class="py-1 sm:py-2">
                 <ProductCard

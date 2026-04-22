@@ -100,7 +100,7 @@ const row1Ref = ref(null);
 const row2Ref = ref(null);
 
 const swiperRow1 = useSwiper(row1Ref, {
-  autoplay: { delay: 3000 },
+  autoplay: { delay: 3000, disableOnInteraction: false },
   slidesPerView: 2,
   spaceBetween: 8,
   breakpoints: {
@@ -113,7 +113,7 @@ const swiperRow1 = useSwiper(row1Ref, {
 });
 
 const swiperRow2 = useSwiper(row2Ref, {
-  autoplay: { delay: 3000 },
+  autoplay: { delay: 3000, disableOnInteraction: false },
   slidesPerView: 2,
   spaceBetween: 8,
   breakpoints: {
@@ -135,15 +135,28 @@ const scrollNext = () => {
   swiperRow2.next();
 };
 
+function initSwiper(elRef: unknown) {
+  const el = elRef as any;
+  el?.initialize?.();
+  el?.swiper?.update?.();
+}
+
+watch(
+  [row1Ref, activeTab],
+  async () => {
+    await nextTick();
+    initSwiper(row1Ref.value);
+  },
+  { immediate: true },
+);
+
 // Row 2 is conditionally rendered (only when > 6 products).
 // When it mounts after a tab switch, we need to ensure the Swiper web component initializes/updates.
 watch(
   [row2Ref, activeTab],
   async () => {
     await nextTick();
-    const el = row2Ref.value as any;
-    el?.initialize?.();
-    el?.swiper?.update?.();
+    initSwiper(row2Ref.value);
   },
   { immediate: true },
 );
@@ -205,7 +218,7 @@ watch(
     <!-- First Row Carousel -->
     <div v-if="firstRowProducts.length" class="mb-4">
       <ClientOnly>
-        <swiper-container ref="row1Ref">
+        <swiper-container ref="row1Ref" :init="false" class="w-full">
           <swiper-slide v-for="item in firstRowProducts" :key="item.id">
             <div class="py-2">
               <ProductCard
@@ -239,7 +252,7 @@ watch(
     <!-- Second Row Carousel -->
     <div v-if="secondRowProducts.length">
       <ClientOnly>
-        <swiper-container ref="row2Ref">
+        <swiper-container ref="row2Ref" :init="false" class="w-full">
           <swiper-slide v-for="item in secondRowProducts" :key="item.id">
             <div class="py-2">
               <ProductCard

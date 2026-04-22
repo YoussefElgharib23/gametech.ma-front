@@ -537,7 +537,7 @@ onBeforeUnmount(() => {
         <h2 class="text-xl font-bold text-neutral-900 mb-6">Vous aimerez aussi</h2>
         <div class="relative">
           <ClientOnly>
-            <swiper-container ref="suggestedSwiperRef" :init="false">
+            <swiper-container ref="suggestedSwiperRef" :init="false" class="w-full">
               <swiper-slide v-for="item in suggestedProducts" :key="`${item.slug}-${item.id}`">
                 <div class="py-1">
                   <ProductCard
