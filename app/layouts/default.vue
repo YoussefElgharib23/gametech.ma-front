@@ -234,7 +234,12 @@ const topContactLine = computed(() => {
           <div v-if="currentHighlightedCategory === 'menu'">
             <div v-if="currentOpenedCategory?.id === undefined" class="divide-y divide-secondary border-b border-secondary">
               <NuxtLink to="/pc-config-builder" class="flex items-center gap-2 h-[45px] px-4 w-full font-medium">
-                <UIcon name="i-lucide-cpu" class="size-5" />
+                <div class="size-5 rounded overflow-hidden">
+                  <img
+                    src="https://api.gametech.ma/storage/categories/icons/CONFIGURATEUR PC.png"
+                    alt="Configurateur PC"
+                    class="size-full object-cover" />
+                </div>
                 <span class="text-sm">Configurateur PC</span>
               </NuxtLink>
               <button
