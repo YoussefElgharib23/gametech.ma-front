@@ -48,7 +48,7 @@ const swiper = useSwiper(containerRef, {
 
     <div class="relative bg-white rounded-lg border border-neutral-200 shadow-sm p-4 px-4 sm:p-6 sm:px-6 lg:px-10">
       <ClientOnly>
-        <swiper-container ref="containerRef">
+        <swiper-container ref="containerRef" :init="false">
           <swiper-slide v-for="item in props.categories" :key="item.id">
             <NuxtLink
               :to="`/category/${item.slug}`"

@@ -37,7 +37,6 @@ interface Product {
   savingsLabel?: string | null;
   stockStatus: string;
   category: ProductCategory | null;
-  suggestedProducts?: SuggestedProduct[];
 }
 
 const siteName = "Gametech.ma";
@@ -46,12 +45,12 @@ const {
   data: productData,
   error: productError,
   pending: productPending,
-} = await useAPIFetch<Product>(() => `/products/${encodeURIComponent(slug.value)}`, {
-  transform: (data: { data: Product }) => data.data,
-});
+} = await useAPIFetch<{ data: Product; suggestedProducts: SuggestedProduct[] }>(
+  () => `/products/${encodeURIComponent(slug.value)}`,
+);
 
 const product = computed(() => {
-  const p = productData.value;
+  const p = productData.value?.data;
   if (!p) {
     return {
       id: 0,
@@ -74,14 +73,14 @@ const product = computed(() => {
 
 const productNotFound = computed(() => !!productError.value || (!productPending.value && !productData.value && slug.value));
 
-const suggestedProducts = computed(() => product.value.suggestedProducts ?? []);
+const suggestedProducts = computed(() => productData.value?.suggestedProducts ?? []);
 
 const activeImageIndex = ref(0);
 const gallerySwiperRef = ref(null);
 const suggestedSwiperRef = ref(null);
 
 const gallerySwiper = useSwiper(gallerySwiperRef, {
-  loop: false,
+  loop: true,
   slidesPerView: 1,
   spaceBetween: 0,
 });
@@ -89,8 +88,7 @@ const gallerySwiper = useSwiper(gallerySwiperRef, {
 const suggestedSwiper = useSwiper(suggestedSwiperRef, {
   loop: true,
   autoplay: {
-    delay: 3500,
-    disableOnInteraction: false,
+    delay: 1500,
   },
   slidesPerView: 2,
   spaceBetween: 12,
@@ -540,7 +538,7 @@ onBeforeUnmount(() => {
         <div class="relative">
           <ClientOnly>
             <swiper-container ref="suggestedSwiperRef" :init="false">
-              <swiper-slide v-for="item in suggestedProducts" :key="item.id">
+              <swiper-slide v-for="item in suggestedProducts" :key="`${item.slug}-${item.id}`">
                 <div class="py-1">
                   <ProductCard
                     :to="`/products/${item.slug}`"
@@ -574,7 +572,7 @@ onBeforeUnmount(() => {
             color="neutral"
             variant="ghost"
             aria-label="Précédent"
-            class="hidden sm:flex absolute -left-4 top-1/2 -translate-y-1/2 rounded-full"
+            class="hidden sm:flex absolute z-10 -start-10 top-1/2 -translate-y-1/2 rounded-full"
             @click="suggestedSwiper.prev()" />
           <UButton
             v-if="suggestedSwiper.instance"
@@ -582,7 +580,7 @@ onBeforeUnmount(() => {
             color="neutral"
             variant="ghost"
             aria-label="Suivant"
-            class="hidden sm:flex absolute -right-4 top-1/2 -translate-y-1/2 rounded-full"
+            class="hidden sm:flex absolute z-10 -end-10 top-1/2 -translate-y-1/2 rounded-full"
             @click="suggestedSwiper.next()" />
         </div>
       </section>
