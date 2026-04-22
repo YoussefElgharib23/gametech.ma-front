@@ -96,18 +96,57 @@ const firstRowProducts = computed(() => currentProducts.value.slice(0, 6));
 
 const secondRowProducts = computed(() => currentProducts.value.slice(6, 12));
 
-const carouselRow1 = useTemplateRef<{ emblaApi: unknown }>("carouselRow1");
-const carouselRow2 = useTemplateRef<{ emblaApi: unknown }>("carouselRow2");
+const row1Ref = ref(null);
+const row2Ref = ref(null);
+
+const swiperRow1 = useSwiper(row1Ref, {
+  autoplay: { delay: 3000 },
+  slidesPerView: 2,
+  spaceBetween: 8,
+  breakpoints: {
+    640: { slidesPerView: 3, spaceBetween: 12 },
+    1024: { slidesPerView: 5, spaceBetween: 12 },
+  },
+  mousewheel: {
+    forceToAxis: true,
+  },
+});
+
+const swiperRow2 = useSwiper(row2Ref, {
+  autoplay: { delay: 3000 },
+  slidesPerView: 2,
+  spaceBetween: 8,
+  breakpoints: {
+    640: { slidesPerView: 3, spaceBetween: 12 },
+    1024: { slidesPerView: 5, spaceBetween: 12 },
+  },
+  mousewheel: {
+    forceToAxis: true,
+  },
+});
 
 const scrollPrev = () => {
-  (carouselRow1.value as { emblaApi?: { scrollPrev: () => void } })?.emblaApi?.scrollPrev();
-  (carouselRow2.value as { emblaApi?: { scrollPrev: () => void } })?.emblaApi?.scrollPrev();
+  swiperRow1.prev();
+  swiperRow2.prev();
 };
 
 const scrollNext = () => {
-  (carouselRow1.value as { emblaApi?: { scrollNext: () => void } })?.emblaApi?.scrollNext();
-  (carouselRow2.value as { emblaApi?: { scrollNext: () => void } })?.emblaApi?.scrollNext();
+  swiperRow1.next();
+  swiperRow2.next();
 };
+
+// Row 2 is conditionally rendered (only when > 6 products).
+// When it mounts after a tab switch, we need to ensure the Swiper web component initializes/updates.
+watch(
+  [row2Ref, activeTab],
+  async () => {
+    await nextTick();
+    const el = row2Ref.value as any;
+    el?.initialize?.();
+    el?.swiper?.update?.();
+  },
+  { immediate: true },
+);
 </script>
 
 <template>
@@ -165,54 +204,70 @@ const scrollNext = () => {
 
     <!-- First Row Carousel -->
     <div v-if="firstRowProducts.length" class="mb-4">
-      <UCarousel
-        ref="carouselRow1"
-        v-slot="{ item }"
-        :items="firstRowProducts"
-        :slides-to-scroll="1"
-        :autoplay="{ delay: 3000 }"
-        :ui="{
-          item: 'basis-1/2 sm:basis-1/5 shrink-0',
-          container: 'gap-1',
-          viewport: 'overflow-hidden',
-        }">
-        <div class="py-2">
-          <ProductCard
-            :to="`/products/${item.slug}`"
-            :image="item.image ?? ''"
-            :images="item.images ?? []"
-            :stock-status="item.stockStatus"
-            :title="item.title"
-            :current-price="item.currentPrice"
-            :old-price="item.oldPrice ?? ''" />
-        </div>
-      </UCarousel>
+      <ClientOnly>
+        <swiper-container ref="row1Ref">
+          <swiper-slide v-for="item in firstRowProducts" :key="item.id">
+            <div class="py-2">
+              <ProductCard
+                :to="`/products/${item.slug}`"
+                :image="item.image ?? ''"
+                :images="item.images ?? []"
+                :stock-status="item.stockStatus"
+                :title="item.title"
+                :current-price="item.currentPrice"
+                :old-price="item.oldPrice ?? ''" />
+            </div>
+          </swiper-slide>
+        </swiper-container>
+        <template #fallback>
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+            <div v-for="item in firstRowProducts.slice(0, 5)" :key="item.id" class="py-2">
+              <ProductCard
+                :to="`/products/${item.slug}`"
+                :image="item.image ?? ''"
+                :images="item.images ?? []"
+                :stock-status="item.stockStatus"
+                :title="item.title"
+                :current-price="item.currentPrice"
+                :old-price="item.oldPrice ?? ''" />
+            </div>
+          </div>
+        </template>
+      </ClientOnly>
     </div>
 
     <!-- Second Row Carousel -->
     <div v-if="secondRowProducts.length">
-      <UCarousel
-        ref="carouselRow2"
-        v-slot="{ item }"
-        :items="secondRowProducts"
-        :slides-to-scroll="1"
-        :autoplay="{ delay: 3000 }"
-        :ui="{
-          item: 'basis-1/2 sm:basis-1/5 shrink-0',
-          container: 'gap-1',
-          viewport: 'overflow-hidden',
-        }">
-        <div class="py-2">
-          <ProductCard
-            :to="`/products/${item.slug}`"
-            :image="item.image ?? ''"
-            :images="item.images ?? []"
-            :stock-status="item.stockStatus"
-            :title="item.title"
-            :current-price="item.currentPrice"
-            :old-price="item.oldPrice ?? ''" />
-        </div>
-      </UCarousel>
+      <ClientOnly>
+        <swiper-container ref="row2Ref">
+          <swiper-slide v-for="item in secondRowProducts" :key="item.id">
+            <div class="py-2">
+              <ProductCard
+                :to="`/products/${item.slug}`"
+                :image="item.image ?? ''"
+                :images="item.images ?? []"
+                :stock-status="item.stockStatus"
+                :title="item.title"
+                :current-price="item.currentPrice"
+                :old-price="item.oldPrice ?? ''" />
+            </div>
+          </swiper-slide>
+        </swiper-container>
+        <template #fallback>
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
+            <div v-for="item in secondRowProducts.slice(0, 5)" :key="item.id" class="py-2">
+              <ProductCard
+                :to="`/products/${item.slug}`"
+                :image="item.image ?? ''"
+                :images="item.images ?? []"
+                :stock-status="item.stockStatus"
+                :title="item.title"
+                :current-price="item.currentPrice"
+                :old-price="item.oldPrice ?? ''" />
+            </div>
+          </div>
+        </template>
+      </ClientOnly>
     </div>
   </UContainer>
 </template>

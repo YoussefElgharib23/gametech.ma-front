@@ -111,10 +111,38 @@ const showSection = computed(() => {
   return (props.blocks ?? []).length > 0;
 });
 
-const categoryCarousel = useTemplateRef<{ emblaApi: { scrollPrev: () => void; scrollNext: () => void } }>("categoryCarousel");
+const productsSwiperRef = ref(null);
 
-const scrollPrev = () => categoryCarousel.value?.emblaApi?.scrollPrev();
-const scrollNext = () => categoryCarousel.value?.emblaApi?.scrollNext();
+const productsSwiper = useSwiper(productsSwiperRef, {
+  loop: true,
+  autoplay: {
+    delay: 4000,
+    disableOnInteraction: false,
+  },
+  slidesPerView: 2,
+  spaceBetween: 8,
+  breakpoints: {
+    768: { slidesPerView: 3, spaceBetween: 12 },
+    1024: { slidesPerView: 4, spaceBetween: 12 },
+  },
+  mousewheel: {
+    forceToAxis: true,
+  },
+});
+
+const scrollPrev = () => productsSwiper.prev();
+const scrollNext = () => productsSwiper.next();
+
+watch(
+  [productsSwiperRef, activeCategory],
+  async () => {
+    await nextTick();
+    const el = productsSwiperRef.value as any;
+    el?.initialize?.();
+    el?.swiper?.update?.();
+  },
+  { immediate: true },
+);
 </script>
 
 <template>
@@ -168,29 +196,36 @@ const scrollNext = () => categoryCarousel.value?.emblaApi?.scrollNext();
 
       <!-- Product carousel -->
       <div class="min-w-0 flex-1">
-        <UCarousel
-          ref="categoryCarousel"
-          v-slot="{ item }"
-          :key="activeCategory"
-          :items="currentProducts"
-          :slides-to-scroll="1"
-          :autoplay="{ delay: 4000 }"
-          :ui="{
-            item: 'basis-1/2 md:basis-1/3 lg:basis-1/4 shrink-0',
-            container: 'gap-2 sm:gap-1',
-            viewport: 'overflow-hidden',
-          }">
-          <div class="py-1 sm:py-2">
-            <ProductCard
-              :to="`/products/${item.slug}`"
-              :image="item.image ?? ''"
-              :images="'images' in item ? item.images ?? [] : []"
-              :stock-status="item.stockStatus"
-              :title="item.title"
-              :current-price="item.currentPrice"
-              :old-price="item.oldPrice ?? ''" />
-          </div>
-        </UCarousel>
+        <ClientOnly>
+          <swiper-container ref="productsSwiperRef" :init="false" :key="activeCategory">
+            <swiper-slide v-for="item in currentProducts" :key="item.id">
+              <div class="py-1 sm:py-2">
+                <ProductCard
+                  :to="`/products/${item.slug}`"
+                  :image="item.image ?? ''"
+                  :images="'images' in item ? item.images ?? [] : []"
+                  :stock-status="item.stockStatus"
+                  :title="item.title"
+                  :current-price="item.currentPrice"
+                  :old-price="item.oldPrice ?? ''" />
+              </div>
+            </swiper-slide>
+          </swiper-container>
+          <template #fallback>
+            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3">
+              <div v-for="item in (currentProducts as any[]).slice(0, 8)" :key="item.id" class="py-1 sm:py-2">
+                <ProductCard
+                  :to="`/products/${item.slug}`"
+                  :image="item.image ?? ''"
+                  :images="'images' in item ? item.images ?? [] : []"
+                  :stock-status="item.stockStatus"
+                  :title="item.title"
+                  :current-price="item.currentPrice"
+                  :old-price="item.oldPrice ?? ''" />
+              </div>
+            </div>
+          </template>
+        </ClientOnly>
       </div>
     </div>
     <div class="mt-5 flex justify-center px-1 sm:mt-6">

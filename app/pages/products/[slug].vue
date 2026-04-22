@@ -13,6 +13,16 @@ interface ProductCategory {
   slug: string;
 }
 
+interface SuggestedProduct {
+  id: number;
+  slug: string;
+  title: string;
+  image: string | null;
+  currentPrice: string;
+  oldPrice?: string | null;
+  stockStatus: string;
+}
+
 interface Product {
   id: number;
   slug: string;
@@ -27,6 +37,7 @@ interface Product {
   savingsLabel?: string | null;
   stockStatus: string;
   category: ProductCategory | null;
+  suggestedProducts?: SuggestedProduct[];
 }
 
 const siteName = "Gametech.ma";
@@ -63,63 +74,88 @@ const product = computed(() => {
 
 const productNotFound = computed(() => !!productError.value || (!productPending.value && !productData.value && slug.value));
 
-const suggestedProducts = ref([
-  {
-    id: 2,
-    slug: "intel-core-i7-13700k",
-    title: "Intel Core i7-13700K 16 Cores",
-    image: "https://pcgameragadir.ma/storage/uploads/products/68cee28d7b94c/ryzen-9-5950x_large.webp",
-    currentPrice: "3 699 MAD",
-    oldPrice: "4 400 MAD",
-    stockStatus: "EN STOCK",
-  },
-  {
-    id: 3,
-    slug: "nvidia-rtx-4070-ti",
-    title: "NVIDIA GeForce RTX 4070 Ti 12GB",
-    image: "https://pcgameragadir.ma/storage/uploads/products/68cee28d7b94c/ryzen-9-5950x_large.webp",
-    currentPrice: "8 399 MAD",
-    oldPrice: "9 199 MAD",
-    stockStatus: "EN STOCK",
-  },
-  {
-    id: 4,
-    slug: "samsung-990-pro-1tb",
-    title: "Samsung 990 Pro 1TB NVMe Gen4",
-    image: "https://pcgameragadir.ma/storage/uploads/products/68cee28d7b94c/ryzen-9-5950x_large.webp",
-    currentPrice: "899 MAD",
-    oldPrice: "999 MAD",
-    stockStatus: "EN STOCK",
-  },
-  {
-    id: 5,
-    slug: "corsair-vengeance-ddr5",
-    title: "Corsair Vengeance RGB DDR5 32GB 6000MHz",
-    image: "https://pcgameragadir.ma/storage/uploads/products/68cee28d7b94c/ryzen-9-5950x_large.webp",
-    currentPrice: "1 199 MAD",
-    stockStatus: "EN STOCK",
-  },
-]);
+const suggestedProducts = computed(() => product.value.suggestedProducts ?? []);
 
 const activeImageIndex = ref(0);
-const carouselRef = useTemplateRef("carousel");
+const gallerySwiperRef = ref(null);
+const suggestedSwiperRef = ref(null);
+
+const gallerySwiper = useSwiper(gallerySwiperRef, {
+  loop: false,
+  slidesPerView: 1,
+  spaceBetween: 0,
+});
+
+const suggestedSwiper = useSwiper(suggestedSwiperRef, {
+  loop: true,
+  autoplay: {
+    delay: 3500,
+    disableOnInteraction: false,
+  },
+  slidesPerView: 2,
+  spaceBetween: 12,
+  breakpoints: {
+    640: { slidesPerView: 3, spaceBetween: 12 },
+    1024: { slidesPerView: 4, spaceBetween: 16 },
+  },
+  mousewheel: {
+    forceToAxis: true,
+  },
+});
 
 function onClickPrev() {
-  activeImageIndex.value--;
+  gallerySwiper.prev();
 }
 
 function onClickNext() {
-  activeImageIndex.value++;
+  gallerySwiper.next();
 }
 
-function onSelect(index: number) {
-  activeImageIndex.value = index;
+function onGallerySlideChange(e: Event) {
+  const swiper = (e?.target as any)?.swiper;
+  if (!swiper) return;
+  activeImageIndex.value = swiper.activeIndex ?? 0;
 }
 
 function selectImage(index: number) {
   activeImageIndex.value = index;
-  carouselRef.value?.emblaApi?.scrollTo(index);
+  const el = gallerySwiperRef.value as any;
+  el?.initialize?.();
+  el?.swiper?.slideTo?.(index);
 }
+
+watch(
+  [gallerySwiperRef, () => product.value.images],
+  async () => {
+    await nextTick();
+    const el = gallerySwiperRef.value as any;
+    el?.initialize?.();
+    el?.swiper?.update?.();
+  },
+  { immediate: true },
+);
+
+watch(
+  suggestedSwiperRef,
+  async () => {
+    await nextTick();
+    const el = suggestedSwiperRef.value as any;
+    el?.initialize?.();
+    el?.swiper?.update?.();
+  },
+  { immediate: true },
+);
+
+watch(
+  suggestedProducts,
+  async () => {
+    await nextTick();
+    const el = suggestedSwiperRef.value as any;
+    el?.initialize?.();
+    el?.swiper?.update?.();
+  },
+  { immediate: true },
+);
 
 const breadcrumbItems = computed(() => {
   const items: { label: string; to?: string }[] = [{ label: "Accueil", to: "/" }];
@@ -351,42 +387,32 @@ onBeforeUnmount(() => {
                 {{ product.savingsLabel }}
               </span>
             </div>
-            <UCarousel
-              v-if="product.images?.length"
-              ref="carousel"
-              v-slot="{ item }"
-              :items="product.images"
-              :ui="{
-                item: 'w-full',
-                container: 'gap-0',
-              }"
-              arrows
-              :prev="{
-                color: 'neutral',
-                variant: 'solid',
-                icon: 'i-lucide-chevron-left',
-                class: 'absolute left-2 top-1/2 -translate-y-1/2 size-10 rounded-full shadow-lg bg-white/90 hover:bg-white',
-                onClick: onClickPrev,
-              }"
-              :next="{
-                color: 'neutral',
-                variant: 'solid',
-                icon: 'i-lucide-chevron-right',
-                class: 'absolute right-2 top-1/2 -translate-y-1/2 size-10 rounded-full shadow-lg bg-white/90 hover:bg-white',
-                onClick: onClickNext,
-              }"
-              @select="onSelect">
-              <div class="w-full h-full aspect-square flex items-center justify-center">
-                <NuxtImg
-                  :src="item"
-                  :alt="`${product.title} - Image`"
-                  class="w-full h-full object-contain"
-                  sizes="(max-width: 1024px) 100vw, 50vw" />
-              </div>
-            </UCarousel>
-            <div v-else class="w-full h-full flex items-center justify-center">
-              <UIcon name="i-lucide-image" class="text-neutral-400 text-6xl" />
-            </div>
+            <ClientOnly>
+              <swiper-container
+                v-if="product.images?.length"
+                ref="gallerySwiperRef"
+                :init="false"
+                @swiperslidechange="onGallerySlideChange">
+                <swiper-slide v-for="(item, idx) in product.images" :key="`${item}-${idx}`">
+                  <div class="w-full h-full aspect-square flex items-center justify-center">
+                    <NuxtImg
+                      :src="item"
+                      :alt="`${product.title} - Image`"
+                      class="w-full h-full object-contain"
+                      sizes="(max-width: 1024px) 100vw, 50vw" />
+                  </div>
+                </swiper-slide>
+              </swiper-container>
+              <template #fallback>
+                <div v-if="product.images?.[0]" class="w-full h-full aspect-square flex items-center justify-center">
+                  <NuxtImg
+                    :src="product.images[0]"
+                    :alt="`${product.title} - Image`"
+                    class="w-full h-full object-contain"
+                    sizes="(max-width: 1024px) 100vw, 50vw" />
+                </div>
+              </template>
+            </ClientOnly>
           </div>
           <div class="flex gap-3 pt-4">
             <div
@@ -475,7 +501,12 @@ onBeforeUnmount(() => {
                   <UInput v-model="devisForm.phone" size="md" placeholder="+212 ..." class="w-full" />
                 </UFormField>
                 <UFormField label="Adresse" required class="w-full">
-                  <UTextarea v-model="devisForm.address" :rows="4" size="md" placeholder="Votre adresse complète" class="w-full" />
+                  <UTextarea
+                    v-model="devisForm.address"
+                    :rows="4"
+                    size="md"
+                    placeholder="Votre adresse complète"
+                    class="w-full" />
                 </UFormField>
               </form>
             </template>
@@ -506,40 +537,54 @@ onBeforeUnmount(() => {
       <!-- Suggested products -->
       <section>
         <h2 class="text-xl font-bold text-neutral-900 mb-6">Vous aimerez aussi</h2>
-        <UCarousel
-          v-slot="{ item }"
-          :items="suggestedProducts"
-          :slides-to-scroll="1"
-          :ui="{
-            item: 'basis-1/2 sm:basis-1/3 lg:basis-1/4 shrink-0',
-            container: 'gap-3',
-            viewport: 'overflow-hidden',
-          }"
-          arrows
-          :prev="{
-            color: 'neutral',
-            variant: 'ghost',
-            icon: 'i-lucide-chevron-left',
-            class: 'hidden sm:flex -left-4 top-1/2 -translate-y-1/2 rounded-full',
-          }"
-          :next="{
-            color: 'neutral',
-            variant: 'ghost',
-            icon: 'i-lucide-chevron-right',
-            class: 'hidden sm:flex -right-4 top-1/2 -translate-y-1/2 rounded-full',
-          }"
-          class="relative">
-          <div class="py-1">
-            <ProductCard
-              :to="`/products/${item.slug}`"
-              :image="item.image"
-              :title="item.title"
-              :current-price="item.currentPrice"
-              :old-price="item.oldPrice"
-              :stock-status="item.stockStatus"
-              @add-to-cart="addItem(item.id, 1)" />
-          </div>
-        </UCarousel>
+        <div class="relative">
+          <ClientOnly>
+            <swiper-container ref="suggestedSwiperRef" :init="false">
+              <swiper-slide v-for="item in suggestedProducts" :key="item.id">
+                <div class="py-1">
+                  <ProductCard
+                    :to="`/products/${item.slug}`"
+                    :image="item.image ?? ''"
+                    :title="item.title"
+                    :current-price="item.currentPrice"
+                    :old-price="item.oldPrice ?? undefined"
+                    :stock-status="item.stockStatus"
+                    @add-to-cart="addItem(item.id, 1)" />
+                </div>
+              </swiper-slide>
+            </swiper-container>
+            <template #fallback>
+              <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                <div v-for="item in suggestedProducts.slice(0, 8)" :key="item.id" class="py-1">
+                  <ProductCard
+                    :to="`/products/${item.slug}`"
+                    :image="item.image ?? ''"
+                    :title="item.title"
+                    :current-price="item.currentPrice"
+                    :old-price="item.oldPrice ?? undefined"
+                    :stock-status="item.stockStatus"
+                    @add-to-cart="addItem(item.id, 1)" />
+                </div>
+              </div>
+            </template>
+          </ClientOnly>
+          <UButton
+            v-if="suggestedSwiper.instance"
+            icon="i-lucide-chevron-left"
+            color="neutral"
+            variant="ghost"
+            aria-label="Précédent"
+            class="hidden sm:flex absolute -left-4 top-1/2 -translate-y-1/2 rounded-full"
+            @click="suggestedSwiper.prev()" />
+          <UButton
+            v-if="suggestedSwiper.instance"
+            icon="i-lucide-chevron-right"
+            color="neutral"
+            variant="ghost"
+            aria-label="Suivant"
+            class="hidden sm:flex absolute -right-4 top-1/2 -translate-y-1/2 rounded-full"
+            @click="suggestedSwiper.next()" />
+        </div>
       </section>
     </template>
   </UContainer>

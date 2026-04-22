@@ -170,7 +170,13 @@ const quickLinks = [
 
       <template #content>
         <NuxtLink to="/pc-config-builder" class="flex items-center gap-2 text-start px-2 text-sm h-10 w-full hover:bg-neutral-50">
-          <UIcon name="i-lucide-cpu" class="size-4" />
+          <!-- <UIcon name="i-lucide-cpu" class="size-4" /> -->
+          <div class="size-6 rounded overflow-hidden">
+            <img
+              src="https://api.gametech.ma/storage/categories/icons/CONFIGURATEUR PC.png"
+              :alt="`Configurateur PC icon`"
+              class="size-full object-cover" />
+          </div>
           <span>Configurateur PC</span>
         </NuxtLink>
 
