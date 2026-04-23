@@ -67,39 +67,7 @@ const landingCategorySlides = [
 
 const containerRef = ref(null);
 
-const swiper = useSwiper(containerRef, {
-  loop: true,
-  autoplay: {
-    delay: 3000,
-    disableOnInteraction: false,
-  },
-  slidesPerView: 2,
-  spaceBetween: 16,
-  breakpoints: {
-    640: {
-      slidesPerView: 3,
-      spaceBetween: 24,
-    },
-    1024: {
-      slidesPerView: 5,
-      spaceBetween: 24,
-    },
-  },
-  mousewheel: {
-    forceToAxis: true,
-  },
-});
-
-watch(
-  [containerRef, () => landingCategorySlides.length],
-  async () => {
-    await nextTick();
-    const el = containerRef.value as any;
-    el?.initialize?.();
-    el?.swiper?.update?.();
-  },
-  { immediate: true },
-);
+const swiper = useSwiper(containerRef);
 </script>
 
 <template>
@@ -108,7 +76,22 @@ watch(
 
     <div class="relative bg-white rounded-lg border border-neutral-200 shadow-sm p-4 px-4 sm:p-6 sm:px-6 lg:px-10">
       <ClientOnly>
-        <swiper-container ref="containerRef" :init="false" class="w-full">
+        <swiper-container
+          ref="containerRef"
+          class="w-full"
+          :space-between="16"
+          :autoplay="{ delay: 2000 }"
+          :slides-per-view="2"
+          :breakpoints="{
+            640: {
+              slidesPerView: 3,
+              spaceBetween: 24,
+            },
+            1024: {
+              slidesPerView: 5,
+              spaceBetween: 24,
+            },
+          }">
           <swiper-slide v-for="item in landingCategorySlides" :key="item.link">
             <NuxtLink :to="item.link" class="flex flex-col items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
               <div class="size-24 sm:size-28 lg:size-32 rounded-md flex items-center justify-center overflow-hidden">
