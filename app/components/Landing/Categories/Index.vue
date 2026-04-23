@@ -10,14 +10,60 @@ export interface CategorySummary {
 <script setup lang="ts">
 // @ts-nocheck
 
-const props = withDefaults(
-  defineProps<{
-    categories: CategorySummary[];
-  }>(),
+/** PrestaShop category URLs → in-app `/category/{slug}` (strip leading id-). */
+function slugFromCategoryLink(link: string): string {
+  const segment = link.split("/").filter(Boolean).pop() ?? "";
+  return segment.replace(/^\d+-/, "") || segment;
+}
+
+/** Paths under `public/imgs/categories/` (filenames use spaces, no accents). */
+const landingCategorySlides = [
   {
-    categories: () => [],
+    name: "SOURIS",
+    link: "/group/souris",
+    image: "/imgs/categories/SOURIS.png",
   },
-);
+  {
+    name: "CASQUE",
+    link: "/group/casque",
+    image: "/imgs/categories/CASQUE.png",
+  },
+  {
+    name: "PROCESSEUR",
+    link: "/group/processeur",
+    image: "/imgs/categories/PROCESSEUR.png",
+  },
+  {
+    name: "PC GAMER",
+    link: "/group/pc-gamer",
+    image: "/imgs/categories/PC GAMER.png",
+  },
+  {
+    name: "BOITIER GAMER",
+    link: "/group/boitier-gamer",
+    image: "/imgs/categories/BOITIER GAMER.png",
+  },
+  {
+    name: "ECRAN PC",
+    link: "/group/ecran-professionel",
+    image: "/imgs/categories/ECRAN PC.png",
+  },
+  {
+    name: "PÉRIPHÉRIQUE PC",
+    link: "/category/peripherique-pc",
+    image: "/imgs/categories/PERIPHERIQUE PC.png",
+  },
+  {
+    name: "CARTE GRAPHIQUE",
+    link: "/group/carte-graphique",
+    image: "/imgs/categories/CARTE GRAPHIQUE.png",
+  },
+  {
+    name: "CLAVIER",
+    link: "/group/clavier",
+    image: "/imgs/categories/CLAVIER.png",
+  },
+];
 
 const containerRef = ref(null);
 
@@ -45,7 +91,7 @@ const swiper = useSwiper(containerRef, {
 });
 
 watch(
-  [containerRef, () => props.categories.length],
+  [containerRef, () => landingCategorySlides.length],
   async () => {
     await nextTick();
     const el = containerRef.value as any;
@@ -57,20 +103,16 @@ watch(
 </script>
 
 <template>
-  <UContainer v-if="props.categories.length" class="py-8">
+  <UContainer v-if="landingCategorySlides.length" class="py-8">
     <h2 class="text-xl font-semibold mb-6 text-brand-dark-950">NOS CATÉGORIES</h2>
 
     <div class="relative bg-white rounded-lg border border-neutral-200 shadow-sm p-4 px-4 sm:p-6 sm:px-6 lg:px-10">
       <ClientOnly>
         <swiper-container ref="containerRef" :init="false" class="w-full">
-          <swiper-slide v-for="item in props.categories" :key="item.id">
-            <NuxtLink
-              :to="`/category/${item.slug}`"
-              class="flex flex-col items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
-              <div
-                class="size-24 sm:size-28 lg:size-32 bg-neutral-100 rounded-md flex items-center justify-center overflow-hidden">
-                <NuxtImg v-if="item.image" :src="item.image" :alt="item.name" class="w-full h-full object-cover" loading="lazy" />
-                <UIcon v-else name="i-lucide-image" class="text-neutral-400 text-3xl" />
+          <swiper-slide v-for="item in landingCategorySlides" :key="item.link">
+            <NuxtLink :to="item.link" class="flex flex-col items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
+              <div class="size-24 sm:size-28 lg:size-32 rounded-md flex items-center justify-center overflow-hidden">
+                <NuxtImg :src="item.image" :alt="item.name" class="w-full h-full object-cover" loading="lazy" />
               </div>
               <p class="text-xs uppercase font-medium text-brand-dark-950 text-center">
                 {{ item.name }}
@@ -81,13 +123,13 @@ watch(
         <template #fallback>
           <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-6">
             <NuxtLink
-              v-for="item in props.categories.slice(0, 5)"
-              :key="item.id"
+              v-for="item in landingCategorySlides.slice(0, 5)"
+              :key="item.link"
+              :to="`/category/${slugFromCategoryLink(item.link)}`"
               class="flex flex-col items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
               <div
                 class="size-24 sm:size-28 lg:size-32 bg-neutral-100 rounded-md flex items-center justify-center overflow-hidden">
-                <NuxtImg v-if="item.image" :src="item.image" :alt="item.name" class="w-full h-full object-cover" loading="lazy" />
-                <UIcon v-else name="i-lucide-image" class="text-neutral-400 text-3xl" />
+                <NuxtImg :src="item.image" :alt="item.name" class="w-full h-full object-cover" loading="lazy" />
               </div>
               <p class="text-xs uppercase font-medium text-brand-dark-950 text-center">
                 {{ item.name }}

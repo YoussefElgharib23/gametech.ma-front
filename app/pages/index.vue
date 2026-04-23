@@ -45,7 +45,7 @@ const emptyLandingProducts: LandingProductsBySection = {
     <LandingSlider :slider-items="landingData?.sliders.main ?? []" />
 
     <!-- Categories carousel -->
-    <LandingCategories :categories="landingData?.categories ?? []" />
+    <LandingCategories />
 
     <!-- Flash sales -->
     <LandingFlashSales />
