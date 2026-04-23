@@ -113,36 +113,10 @@ const showSection = computed(() => {
 
 const productsSwiperRef = ref(null);
 
-const productsSwiper = useSwiper(productsSwiperRef, {
-  loop: true,
-  autoplay: {
-    delay: 4000,
-    disableOnInteraction: false,
-  },
-  slidesPerView: 2,
-  spaceBetween: 8,
-  breakpoints: {
-    768: { slidesPerView: 3, spaceBetween: 12 },
-    1024: { slidesPerView: 4, spaceBetween: 12 },
-  },
-  mousewheel: {
-    forceToAxis: true,
-  },
-});
+const productsSwiper = useSwiper(productsSwiperRef);
 
 const scrollPrev = () => productsSwiper.prev();
 const scrollNext = () => productsSwiper.next();
-
-watch(
-  [productsSwiperRef, activeCategory],
-  async () => {
-    await nextTick();
-    const el = productsSwiperRef.value as any;
-    el?.initialize?.();
-    el?.swiper?.update?.();
-  },
-  { immediate: true },
-);
 </script>
 
 <template>
@@ -197,7 +171,19 @@ watch(
       <!-- Product carousel -->
       <div class="min-w-0 flex-1">
         <ClientOnly>
-          <swiper-container ref="productsSwiperRef" :init="false" :key="activeCategory" class="w-full">
+          <swiper-container
+            ref="productsSwiperRef"
+            :key="activeCategory"
+            class="w-full"
+            :loop="true"
+            :space-between="8"
+            :autoplay="{ delay: 4000, disableOnInteraction: false }"
+            :slides-per-view="2"
+            :mousewheel="{ forceToAxis: true }"
+            :breakpoints="{
+              768: { slidesPerView: 3, spaceBetween: 12 },
+              1024: { slidesPerView: 4, spaceBetween: 12 },
+            }">
             <swiper-slide v-for="item in currentProducts" :key="item.id">
               <div class="py-1 sm:py-2">
                 <ProductCard

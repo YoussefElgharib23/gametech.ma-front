@@ -79,27 +79,14 @@ const activeImageIndex = ref(0);
 const gallerySwiperRef = ref(null);
 const suggestedSwiperRef = ref(null);
 
-const gallerySwiper = useSwiper(gallerySwiperRef, {
-  loop: true,
-  slidesPerView: 1,
-  spaceBetween: 0,
-});
+const gallerySwiper = useSwiper(gallerySwiperRef);
+const suggestedSwiper = useSwiper(suggestedSwiperRef);
 
-const suggestedSwiper = useSwiper(suggestedSwiperRef, {
-  loop: true,
-  autoplay: {
-    delay: 1500,
-  },
-  slidesPerView: 2,
-  spaceBetween: 12,
-  breakpoints: {
-    640: { slidesPerView: 3, spaceBetween: 12 },
-    1024: { slidesPerView: 4, spaceBetween: 16 },
-  },
-  mousewheel: {
-    forceToAxis: true,
-  },
-});
+const gallerySwiperKey = computed(() => (product.value.images ?? []).join("|"));
+
+const suggestedSwiperKey = computed(() =>
+  suggestedProducts.value.map((p) => `${p.id}:${p.slug}`).join("|"),
+);
 
 function onClickPrev() {
   gallerySwiper.prev();
@@ -118,42 +105,8 @@ function onGallerySlideChange(e: Event) {
 function selectImage(index: number) {
   activeImageIndex.value = index;
   const el = gallerySwiperRef.value as any;
-  el?.initialize?.();
   el?.swiper?.slideTo?.(index);
 }
-
-watch(
-  [gallerySwiperRef, () => product.value.images],
-  async () => {
-    await nextTick();
-    const el = gallerySwiperRef.value as any;
-    el?.initialize?.();
-    el?.swiper?.update?.();
-  },
-  { immediate: true },
-);
-
-watch(
-  suggestedSwiperRef,
-  async () => {
-    await nextTick();
-    const el = suggestedSwiperRef.value as any;
-    el?.initialize?.();
-    el?.swiper?.update?.();
-  },
-  { immediate: true },
-);
-
-watch(
-  suggestedProducts,
-  async () => {
-    await nextTick();
-    const el = suggestedSwiperRef.value as any;
-    el?.initialize?.();
-    el?.swiper?.update?.();
-  },
-  { immediate: true },
-);
 
 const breadcrumbItems = computed(() => {
   const items: { label: string; to?: string }[] = [{ label: "Accueil", to: "/" }];
@@ -389,7 +342,10 @@ onBeforeUnmount(() => {
               <swiper-container
                 v-if="product.images?.length"
                 ref="gallerySwiperRef"
-                :init="false"
+                :key="gallerySwiperKey"
+                :loop="true"
+                :slides-per-view="1"
+                :space-between="0"
                 @swiperslidechange="onGallerySlideChange">
                 <swiper-slide v-for="(item, idx) in product.images" :key="`${item}-${idx}`">
                   <div class="w-full h-full aspect-square flex items-center justify-center">
@@ -537,7 +493,19 @@ onBeforeUnmount(() => {
         <h2 class="text-xl font-bold text-neutral-900 mb-6">Vous aimerez aussi</h2>
         <div class="relative">
           <ClientOnly>
-            <swiper-container ref="suggestedSwiperRef" :init="false" class="w-full">
+            <swiper-container
+              ref="suggestedSwiperRef"
+              :key="suggestedSwiperKey"
+              class="w-full"
+              :loop="true"
+              :space-between="12"
+              :autoplay="{ delay: 1500, disableOnInteraction: false }"
+              :slides-per-view="2"
+              :mousewheel="{ forceToAxis: true }"
+              :breakpoints="{
+                640: { slidesPerView: 3, spaceBetween: 12 },
+                1024: { slidesPerView: 4, spaceBetween: 16 },
+              }">
               <swiper-slide v-for="item in suggestedProducts" :key="`${item.slug}-${item.id}`">
                 <div class="py-1">
                   <ProductCard

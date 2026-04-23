@@ -73,13 +73,11 @@ const centerSlides = ref<CenterSlideState[]>([
 ]);
 
 const centerSwiperRef = ref(null);
-const centerSwiper = useSwiper(centerSwiperRef, {
-  loop: true,
-  autoplay: {
-    delay: 4500,
-    disableOnInteraction: false,
-  },
-});
+const centerSwiper = useSwiper(centerSwiperRef);
+
+const centerSwiperKey = computed(() =>
+  centerSlides.value.map((s) => s.sliderId ?? `u${s.uploadId ?? 0}`).join("-"),
+);
 
 const centerSlidesModalOpen = ref(false);
 
@@ -304,8 +302,11 @@ async function saveAll() {
             <ClientOnly>
               <swiper-container
                 ref="centerSwiperRef"
-                :init="false"
-                class="block w-full min-h-[220px] sm:min-h-[320px] lg:min-h-[450px]">
+                :key="centerSwiperKey"
+                class="block w-full min-h-[220px] sm:min-h-[320px] lg:min-h-[450px]"
+                :loop="true"
+                :slides-per-view="1"
+                :autoplay="{ delay: 4500, disableOnInteraction: false }">
                 <swiper-slide v-for="(slide, idx) in centerSlides" :key="slide.sliderId ?? `new-${idx}`">
                   <a
                     v-if="!editable && slide.link"

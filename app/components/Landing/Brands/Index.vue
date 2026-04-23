@@ -53,7 +53,7 @@ const hoveredSlug = ref<string | null>(null);
           @mouseenter="hoveredSlug = brand.slug"
           @mouseleave="hoveredSlug = null">
           <div
-            class="group-hover:shadow-lg rounded-md overflow-hidden aspect-square sm:h-22 h-18 flex items-center justify-center">
+            class="group-hover:shadow-lg rounded-md overflow-hidden aspect-square sm:h-22 h-[70px] flex items-center justify-center">
             <NuxtImg v-if="brand.image" :src="brand.image" :alt="brand.name" class="" />
             <UIcon v-else name="i-lucide-image" class="text-neutral-400 text-3xl" />
           </div>

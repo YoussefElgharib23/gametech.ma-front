@@ -10,12 +10,6 @@ export interface CategorySummary {
 <script setup lang="ts">
 // @ts-nocheck
 
-/** PrestaShop category URLs → in-app `/category/{slug}` (strip leading id-). */
-function slugFromCategoryLink(link: string): string {
-  const segment = link.split("/").filter(Boolean).pop() ?? "";
-  return segment.replace(/^\d+-/, "") || segment;
-}
-
 /** Paths under `public/imgs/categories/` (filenames use spaces, no accents). */
 const landingCategorySlides = [
   {
@@ -108,7 +102,7 @@ const swiper = useSwiper(containerRef);
             <NuxtLink
               v-for="item in landingCategorySlides.slice(0, 5)"
               :key="item.link"
-              :to="`/category/${slugFromCategoryLink(item.link)}`"
+              :to="item.link"
               class="flex flex-col items-center gap-2 cursor-pointer hover:opacity-80 transition-opacity">
               <div
                 class="size-24 sm:size-28 lg:size-32 bg-neutral-100 rounded-md flex items-center justify-center overflow-hidden">
