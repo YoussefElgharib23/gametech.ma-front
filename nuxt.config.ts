@@ -38,6 +38,18 @@ export default defineNuxtConfig({
     },
   },
 
+  // Enable credentials for Sanctum cookie-based authentication
+  nitro: {
+    routeRules: {
+      "/api/**": {
+        cors: true,
+        headers: {
+          "Access-Control-Allow-Credentials": "true",
+        },
+      },
+    },
+  },
+
   eslint: {
     config: {
       stylistic: {

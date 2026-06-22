@@ -65,6 +65,7 @@ export default function <T>(
   options = {
     ...options,
     baseURL: config.apiBaseUrl as string,
+    credentials: "include",
     headers: computedHeaders.value,
     onRequest() {
       if (options.withLoading) {

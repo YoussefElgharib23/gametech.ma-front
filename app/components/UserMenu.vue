@@ -5,32 +5,27 @@ defineProps<{
   collapsed?: boolean;
 }>();
 
-const user = ref({
-  name: "Benjamin Canac",
-  avatar: {
-    src: "https://github.com/benjamincanac.png",
-    alt: "Benjamin Canac",
-  },
-});
+const { user, logout } = useAuth();
 
-const token = useCookie<string | null>("token", { default: () => null });
+// Use actual user data from auth composable or fallback
+const displayUser = computed(() => ({
+  name: user.value?.name || "Utilisateur",
+  avatar: {
+    src: `https://ui-avatars.com/api/?name=${encodeURIComponent(user.value?.name || "User")}&background=0D8ABC&color=fff`,
+    alt: user.value?.name || "Utilisateur",
+  },
+}));
 
 async function handleLogout() {
-  try {
-    await $apiFetch("/auth/logout", { method: "POST" });
-  } catch {
-    /* token may already be invalid */
-  }
-  token.value = null;
-  await navigateTo("/");
+  await logout();
 }
 
 const items = computed<DropdownMenuItem[][]>(() => [
   [
     {
       type: "label",
-      label: user.value.name,
-      avatar: user.value.avatar,
+      label: displayUser.value.name,
+      avatar: displayUser.value.avatar,
     },
   ],
   [
@@ -64,8 +59,8 @@ const items = computed<DropdownMenuItem[][]>(() => [
     :ui="{ content: collapsed ? 'w-48' : 'w-(--reka-dropdown-menu-trigger-width)' }">
     <UButton
       v-bind="{
-        ...user,
-        label: collapsed ? undefined : user?.name,
+        ...displayUser,
+        label: collapsed ? undefined : displayUser?.name,
         trailingIcon: collapsed ? undefined : 'i-lucide-chevrons-up-down',
       }"
       color="neutral"
