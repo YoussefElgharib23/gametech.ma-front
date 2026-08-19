@@ -111,6 +111,8 @@ const showSection = computed(() => {
   return (props.blocks ?? []).length > 0;
 });
 
+const { addItem } = useCart();
+
 const productsSwiperRef = ref(null);
 
 const productsSwiper = useSwiper(productsSwiperRef);
@@ -193,7 +195,8 @@ const scrollNext = () => productsSwiper.next();
                   :stock-status="item.stockStatus"
                   :title="item.title"
                   :current-price="item.currentPrice"
-                  :old-price="item.oldPrice ?? ''" />
+                  :old-price="item.oldPrice ?? ''"
+                  @add-to-cart="addItem(item.id, 1)" />
               </div>
             </swiper-slide>
           </swiper-container>
@@ -207,7 +210,8 @@ const scrollNext = () => productsSwiper.next();
                   :stock-status="item.stockStatus"
                   :title="item.title"
                   :current-price="item.currentPrice"
-                  :old-price="item.oldPrice ?? ''" />
+                  :old-price="item.oldPrice ?? ''"
+                  @add-to-cart="addItem(item.id, 1)" />
               </div>
             </div>
           </template>

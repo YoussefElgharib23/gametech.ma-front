@@ -96,6 +96,8 @@ const firstRowProducts = computed(() => currentProducts.value.slice(0, 6));
 
 const secondRowProducts = computed(() => currentProducts.value.slice(6, 12));
 
+const { addItem } = useCart();
+
 const row1Ref = ref(null);
 const row2Ref = ref(null);
 
@@ -191,7 +193,8 @@ const scrollNext = () => {
                 :stock-status="item.stockStatus"
                 :title="item.title"
                 :current-price="item.currentPrice"
-                :old-price="item.oldPrice ?? ''" />
+                :old-price="item.oldPrice ?? ''"
+                @add-to-cart="addItem(item.id, 1)" />
             </div>
           </swiper-slide>
         </swiper-container>
@@ -205,7 +208,8 @@ const scrollNext = () => {
                 :stock-status="item.stockStatus"
                 :title="item.title"
                 :current-price="item.currentPrice"
-                :old-price="item.oldPrice ?? ''" />
+                :old-price="item.oldPrice ?? ''"
+                @add-to-cart="addItem(item.id, 1)" />
             </div>
           </div>
         </template>
@@ -236,7 +240,8 @@ const scrollNext = () => {
                 :stock-status="item.stockStatus"
                 :title="item.title"
                 :current-price="item.currentPrice"
-                :old-price="item.oldPrice ?? ''" />
+                :old-price="item.oldPrice ?? ''"
+                @add-to-cart="addItem(item.id, 1)" />
             </div>
           </swiper-slide>
         </swiper-container>
@@ -250,7 +255,8 @@ const scrollNext = () => {
                 :stock-status="item.stockStatus"
                 :title="item.title"
                 :current-price="item.currentPrice"
-                :old-price="item.oldPrice ?? ''" />
+                :old-price="item.oldPrice ?? ''"
+                @add-to-cart="addItem(item.id, 1)" />
             </div>
           </div>
         </template>

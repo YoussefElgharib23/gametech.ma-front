@@ -87,6 +87,8 @@ const flashTotal = computed(() => flashArchive.value?.meta?.pagination?.total ??
 
 const showMoreCard = computed(() => flashProductsList.value.length > 0 && flashTotal.value > flashProductsList.value.length);
 
+const { addItem } = useCart();
+
 const sectionListingPath = `/section/${VENTE_FLASH_SECTION_SLUG}`;
 </script>
 
@@ -168,7 +170,8 @@ const sectionListingPath = `/section/${VENTE_FLASH_SECTION_SLUG}`;
               :stock-status="product.stockStatus"
               :title="product.title"
               :current-price="product.priceLabel"
-              :old-price="product.oldPriceLabel || undefined" />
+              :old-price="product.oldPriceLabel || undefined"
+              @add-to-cart="addItem(product.id, 1)" />
           </div>
           <div v-if="showMoreCard && flashProductsList[flashProductsList.length - 1] !== undefined" class="relative">
             <ProductCard
@@ -178,7 +181,8 @@ const sectionListingPath = `/section/${VENTE_FLASH_SECTION_SLUG}`;
               :stock-status="flashProductsList[flashProductsList.length - 1].stockStatus"
               :title="flashProductsList[flashProductsList.length - 1].title"
               :current-price="flashProductsList[flashProductsList.length - 1].priceLabel"
-              :old-price="flashProductsList[flashProductsList.length - 1].oldPriceLabel || undefined" />
+              :old-price="flashProductsList[flashProductsList.length - 1].oldPriceLabel || undefined"
+              @add-to-cart="addItem(flashProductsList[flashProductsList.length - 1]!.id, 1)" />
             <NuxtLink
               :to="sectionListingPath"
               aria-label="Voir tous les produits en vente flash"
